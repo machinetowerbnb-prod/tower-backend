@@ -28,7 +28,7 @@ export const forgotPassword = async (req, res) => {
 
     const user = userResult.rows[0];
 
-    const resetLink = `${process.env.CLIENT_URL}/reset-password`;
+    const resetLink = `${process.env.CLIENT_URL}/reset-password/${user.email}`;
 
     // 3️⃣ Compose email HTML
     const html = `

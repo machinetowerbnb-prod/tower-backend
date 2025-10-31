@@ -1,51 +1,74 @@
 // ✅ Centralized SQL queries for user operations (with userId column)
 export const userQueries = {
-  // 1️⃣ Check if user already exists
+  //  Check if user already exists
   checkUserExists: `
     SELECT * FROM users.userDetails WHERE email = $1
   `,
 
-  // 2️⃣ Insert new user
+  // Insert new user
   insertUser: `
     INSERT INTO users.userDetails 
       ("userId", "userName", email, password, "refferedCode", mpin, "refferalCode", "isVerified", "isActiveUser")
     VALUES 
-      ($1, $2, $3, $4, $5, $6, $7, true, true)
+      ($1, $2, $3, $4, $5, $6, $7, false, true)
     RETURNING id, "userId", "userName", email, "refferalCode";
   `,
 
-  // 3️⃣ Optional: Get user by referral code
-  getUserByReferralCode: `
-    SELECT * FROM users.userDetails WHERE "refferalCode" = $1
-  `,
-
-  // 4️⃣ Optional: Update user status
-  updateUserStatus: `
-    UPDATE users.userDetails 
-    SET "isActiveUser" = $1 
-    WHERE id = $2
-  `,
-
-  // 5️⃣ Optional: Update password
+  //  Optional: Update password
   updatePassword: `
     UPDATE users.userDetails 
     SET password = $1 
     WHERE email = $2
   `,
-  // 6️⃣ Get user by email (for login)
-getUserByEmail: `
-  SELECT "userId", email, password, "isActiveUser"
-  FROM users.userDetails
-  WHERE email = $1
-`,
+  //  Get user by email (for login)
+  getUserById: `
+    SELECT "userId", email, password, "isActiveUser"
+    FROM users.userDetails
+    WHERE "userId" = $1
+  `,
 
+    getUserByEmail: `
+    SELECT "userId", "userName", email, password, "isActiveUser" , "isVerified"
+    FROM users.userDetails
+    WHERE email = $1
+  `,
+
+  insertOtp: `
+    INSERT INTO users.otpVerify (email, otp, expires_at)
+    VALUES ($1, $2, $3)
+  `,
+
+  deleteOldOtp: `
+    DELETE FROM users.otpVerify
+    WHERE email = $1
+  `,
+
+  getOtpRecord: `
+    SELECT otp, expires_at 
+    FROM users.otpVerify
+    WHERE email = $1
+    ORDER BY created_at DESC
+    LIMIT 1;
+  `,
+
+
+  verifyUserEmail: `
+    UPDATE users.userDetails
+    SET "isVerified" = true
+    WHERE email = $1;
+  `,
 };
 
 export const adminQueries = {
   getMaintenanceStatus: `
     SELECT 
-      isUnderMaintainance, 
-      maintainanceImageLocation 
+      "isUnderMaintainance", 
+      "maintainanceImageLocation" 
+    FROM admin.master
+    LIMIT 1;
+  `,
+  getPlans: `
+    SELECT plans
     FROM admin.master
     LIMIT 1;
   `,
