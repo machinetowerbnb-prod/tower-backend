@@ -4,10 +4,10 @@ export function isValidEmail(email) {
   return regex.test(email);
 }
 
-// ✅ MPIN must be exactly 4 digits
-export function isValidMpin(mpin) {
+// ✅ Passcode must be exactly 4 digits
+export function isValidPasscode(passcode) {
   const regex = /^\d{4}$/;
-  return regex.test(mpin);
+  return regex.test(passcode);
 }
 
 // ✅ Password strength validation

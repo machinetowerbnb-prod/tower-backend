@@ -58,8 +58,8 @@ export const verifyOtp = async (req, res) => {
     // ✅ Success
     return res.status(200).json({
       statusCode: 200,
-      message: "success",
-      data: "Email Verified Successfully",
+      message: "Email Verified Successfully",
+      data: null,
     });
   } catch (error) {
     console.error("verifyOtp Error:", error);

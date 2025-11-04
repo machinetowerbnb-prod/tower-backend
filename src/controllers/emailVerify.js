@@ -64,8 +64,8 @@ export const emailVerify = async (req, res) => {
     // ✅ Success Response
     return res.status(200).json({
       statusCode: 200,
-      message: "success",
-      data: "Email Sent Successfully",
+      message: "Email Sent Successfully",
+      data: null,
     });
   } catch (error) {
     console.error("Email Verify Error:", error);

@@ -1,4 +1,10 @@
+import { handleDepositsScreen } from "./screens/depositsHandler.js";
 import { gamesHandler } from "./screens/gamesHandler.js";
+import { handleHistoryScreen } from "./screens/historyHandler.js";
+import { handleHomeScreen } from "./screens/homeHandler.js";
+import { handleWithdrawScreen } from "./screens/withdrawHandler.js";
+import { handlePositionScreen } from "./screens/positionHandler.js";
+import { handleMemberScreen } from "./screens/membersHandler.js";
 
 export const avengersController = async (req, res) => {
   const { userId, screen } = req.body;
@@ -18,14 +24,28 @@ export const avengersController = async (req, res) => {
       case "games":
         response = await gamesHandler(userId);
         break;
-
-      // future cases (we’ll add step-by-step later)
       case "home":
-      case "members":
+        response = await handleHomeScreen(userId);
+        break;
+      case "deposits":
+        response = await handleDepositsScreen(userId);
+        break;
+      case "withdrawal":
+        response = await handleWithdrawScreen(userId);
+        break;
+      case "history":
+        response = await handleHistoryScreen(userId);
+        break;
+      case "position":
+        response = await handlePositionScreen(userId);
+        break;
+      case "genOne":
+      case "genTwo":
+      case "genThree":
+        response = await handleMemberScreen(userId, screen);
+        break;
       case "commission":
       case "teams":
-      case "position":
-      case "withdrawal":
       case "gameCurrentPlan":
         response = {
           statusCode: 200,
