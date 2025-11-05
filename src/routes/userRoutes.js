@@ -12,7 +12,8 @@ import { depositConfirmController } from "../controllers/depositConfirmControlle
 import { withdrawController } from "../controllers/withdrawController.js";
 import { adminUpdateController } from "../controllers/adminUpdateController.js";
 import { adminWithdrawApprovalController } from "../controllers/adminWithdrawApprovalController.js";
-
+import { purchaseNow } from "../controllers/purchaseNow.js";
+import { activateGame } from "../controllers/activateGameController.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
@@ -27,5 +28,6 @@ router.post("/confirm", checkActiveUser ,depositConfirmController);
 router.post("/withdraw",checkActiveUser, withdrawController);
 router.post("/adminUpdate", adminUpdateController);
 router.post("/withdraw-approval", adminWithdrawApprovalController);
-
+router.post("/purchaseNow", checkActiveUser ,purchaseNow);
+router.post("/activateGame",checkActiveUser, activateGame);
 export default router;
