@@ -141,7 +141,37 @@ export const userQueries = {
     FROM users.userDetails u
     LEFT JOIN users.wallets w ON u."userId" = w."userId"
     WHERE u."userId" = ANY($1::bigint[]);
-  `
+  `,
+
+  getUserGenerations: `
+    SELECT "firstGen", "secondGen", "thirdGen"
+    FROM users.userDetails
+    WHERE "userId" = $1;
+  `,
+
+  getUsersByIds: `
+    SELECT "userId", "email", "isDeposited"
+    FROM users.userDetails
+    WHERE "userId" = ANY($1::bigint[]);
+  `,
+
+  getWalletsByUserIds: `
+    SELECT "userId", "deposits", "totalCommission"
+    FROM users.wallets
+    WHERE "userId" = ANY($1::bigint[]);
+  `,
+
+  getWithdrawalsByUserIds: `
+    SELECT "userId", SUM("amount") AS "amount"
+    FROM users.withdrawals
+    WHERE "userId" = ANY($1::bigint[])
+    GROUP BY "userId";
+  `,
+  getUserLevelById: `
+  SELECT "userLevel"
+  FROM users.wallets
+  WHERE "userId" = $1;
+`,
 };
 
 export const adminQueries = {

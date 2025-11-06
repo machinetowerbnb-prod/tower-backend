@@ -1,3 +1,4 @@
+import { pool } from '../db.js';
 import { handleDepositsScreen } from "./screens/depositsHandler.js";
 import { gamesHandler } from "./screens/gamesHandler.js";
 import { handleHistoryScreen } from "./screens/historyHandler.js";
@@ -5,7 +6,8 @@ import { handleHomeScreen } from "./screens/homeHandler.js";
 import { handleWithdrawScreen } from "./screens/withdrawHandler.js";
 import { handlePositionScreen } from "./screens/positionHandler.js";
 import { handleMemberScreen } from "./screens/membersHandler.js";
-
+import { getTeamsData } from "./screens/teamsHandler.js";
+import { userQueries } from "../helpers/queries.js";
 export const avengersController = async (req, res) => {
   const { userId, screen } = req.body;
 
@@ -44,16 +46,29 @@ export const avengersController = async (req, res) => {
       case "genThree":
         response = await handleMemberScreen(userId, screen);
         break;
-      case "commission":
       case "teams":
-      case "gameCurrentPlan":
+        response = await getTeamsData(userId);
+        break;
+      case "gameCurrentPlan": 
+        const userResult = await pool.query(userQueries.getUserLevelById, [userId]);
+        if (userResult.rows.length === 0) {
+          return res.status(404).json({
+            statusCode: 404,
+            message: "User not found",
+            data: null,
+          });
+        }
+
+        const { userlevel } = userResult.rows[0];
+
         response = {
           statusCode: 200,
-          message: `Coming soon for screen: ${screen}`,
-          data: null,
-        };
-        break;
-
+          message: "success",
+          data: {
+            currentPlan: userlevel || "Free",
+          },
+        }
+        break ;
       default:
         response = {
           statusCode: 400,
