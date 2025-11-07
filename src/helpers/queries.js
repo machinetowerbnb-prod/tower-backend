@@ -70,7 +70,7 @@ export const userQueries = {
 
   // Generic jsonb append helper (we'll call one of these by index)
  appendFirstGen: `
-    UPDATE users."userDetails"
+    UPDATE users.userDetails
     SET "firstGen" = COALESCE(
       (
         CASE
@@ -88,7 +88,7 @@ export const userQueries = {
   `,
 
   appendSecondGen: `
-    UPDATE users."userDetails"
+    UPDATE users.userDetails
     SET "secondGen" = COALESCE(
       (
         CASE
@@ -106,7 +106,7 @@ export const userQueries = {
   `,
 
   appendThirdGen: `
-    UPDATE users."userDetails"
+    UPDATE users.userDetails
     SET "thirdGen" = COALESCE(
       (
         CASE
