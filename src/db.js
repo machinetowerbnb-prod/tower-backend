@@ -7,6 +7,7 @@ export const pool = new pg.Pool({
 });
 
 export async function initDb() {
+  try {
   await pool.query(`create extension if not exists "pgcrypto";`).catch(()=>{});
   await pool.query(`
     create table if not exists users (
@@ -16,4 +17,8 @@ export async function initDb() {
       created_at timestamptz not null default now()
     );
   `);
+  console.log('Database connection successful')
+  }catch (err) {
+    console.log('Database connection error:', err)
+  }
 }
