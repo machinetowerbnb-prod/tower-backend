@@ -1,6 +1,6 @@
-import { pool } from '../db.js';
+import { pool } from "../db.js";
 import { userQueries } from "../helpers/queries.js";
-import { sendMail } from '../utils/email.js';
+import { sendMail } from "../utils/email.js";
 
 export const emailVerify = async (req, res) => {
   try {
@@ -38,21 +38,68 @@ export const emailVerify = async (req, res) => {
 
     // 5️⃣ Insert new OTP into DB
     await pool.query(userQueries.insertOtp, [email, otp, expiresAt]);
-
+   const verifyLink = `${process.env.FRONTEND_URL}/reset-password?email=${email}`;
     // 6️⃣ Build HTML email
     const html = `
-      <div style="font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; padding: 30px;">
-        <div style="max-width: 500px; margin: auto; background: #ffffff; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 25px;">
-          <h2 style="color: #2a4365; text-align: center;">🔐 Email Verification</h2>
-          <p style="font-size: 16px; color: #333;">Hello <b>${user.username}</b>,</p>
-          <p style="font-size: 15px; color: #555;">Use the following One-Time Password (OTP) to verify your email address:</p>
-          <h1 style="letter-spacing: 6px; color: #1a73e8; text-align: center;">${otp}</h1>
-          <p style="font-size: 14px; color: #777; text-align: center;">This OTP is valid for <b>2 minutes</b>. Please do not share it with anyone.</p>
-          <hr style="margin: 25px 0;">
-          <p style="font-size: 13px; color: #aaa; text-align: center;">© ${new Date().getFullYear()} Tower App — Secure Verification System</p>
-        </div>
-      </div>
-    `;
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Your Email</title>
+  </head>
+  <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0;">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      <tr>
+        <td style="padding: 30px 40px; text-align: center; background: linear-gradient(135deg, #007BFF, #00B4DB); border-radius: 12px 12px 0 0;">
+          <h1 style="color: #fff; margin: 0; font-size: 24px;">✉️ Verify Email Request</h1>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 30px 40px;">
+          <p style="font-size: 16px; color: #333; margin-bottom: 15px;">Hello <b>${
+            user.userName || "User"
+          }</b>,</p>
+          <p style="font-size: 15px; color: #555; line-height: 1.6;">
+            We received a request to verify your email. Please use the following One-Time Password (OTP) to continue:
+          </p>
+
+          <!-- OTP Block -->
+          <div style="text-align: center; margin: 25px 0;">
+            <div style="display: inline-block; background-color: #f0f4ff; border: 2px dashed #007BFF; border-radius: 8px; padding: 15px 25px;">
+              <p style="font-size: 28px; letter-spacing: 4px; color: #007BFF; margin: 0; font-weight: bold;">
+                ${otp}
+              </p>
+            </div>
+          </div>
+
+          <p style="font-size: 15px; color: #555; line-height: 1.6;">
+            you can click the button below to go directly to the verify email page:
+          </p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verifyLink}" style="background-color: #007BFF; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+              Verify Email
+            </a>
+          </div>
+
+          <p style="font-size: 14px; color: #666; line-height: 1.6;">
+            This OTP and link will expire in <b>10 minutes</b>. If you didn’t request a password reset, you can safely ignore this email.
+          </p>
+
+          <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+
+          <p style="font-size: 14px; color: #888; text-align: center;">
+            Regards, <br/>
+            <b>Machine Tower Team</b>
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+`;
 
     // 7️⃣ Send Email via Resend API
     await sendMail({
