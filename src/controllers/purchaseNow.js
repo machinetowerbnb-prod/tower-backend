@@ -1,4 +1,4 @@
-import { pool } from '../db.js';
+import { pool } from "../db.js";
 
 export const purchaseNow = async (req, res) => {
   const { userId, Level } = req.body;
@@ -6,7 +6,7 @@ export const purchaseNow = async (req, res) => {
   if (!userId || !Level) {
     return res.status(400).json({
       statusCode: 400,
-      message: "userId and Level are required."
+      message: "userId and Level are required.",
     });
   }
 
@@ -20,38 +20,57 @@ export const purchaseNow = async (req, res) => {
     if (walletResult.rows.length === 0) {
       return res.status(404).json({
         statusCode: 404,
-        message: "Wallet not found for this user."
+        message: "Wallet not found for this user.",
       });
     }
 
     const wallet = walletResult.rows[0];
     const deposits = Number(wallet.deposits || 0);
+    const userLevel = wallet.userLevel || null;
+    const isFreeMoney = wallet.isFreeMoney || false;
 
     // 2️⃣ Handle "free" level
     if (Level === "free") {
+      // ✅ Check if free money already claimed
+      if (isFreeMoney) {
+        return res.status(400).json({
+          statusCode: 400,
+          message: "Free money has already been claimed.",
+        });
+      }
+
       const bonus = 8;
+
       await pool.query(
         `UPDATE users.wallets
          SET "deposits" = "deposits" + $1,
              "userLevel" = $2,
-             "purchaseAmount" = $1
+             "purchaseAmount" = $1,
+             "isFreeMoney" = true
          WHERE "userId" = $3`,
         [bonus, Level, userId]
       );
 
       return res.status(200).json({
         statusCode: 200,
-        message: "Free level purchased successfully!",
-        data: { userId, Level, purchaseAmount: bonus }
+        message: "Free level claimed successfully!",
+        data: { userId, Level, purchaseAmount: bonus },
+      });
+    }
+    // 3️⃣ If user already purchased this level, block duplicate purchase
+    if (userLevel && userLevel === Level) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: `You have already purchased ${Level}.`,
       });
     }
 
-    // 3️⃣ Define level ranges
+    // 4️⃣ Define level ranges
     const levelRanges = {
       Level1: { min: 60, max: 500 },
       Level2: { min: 501, max: 900 },
       Level3: { min: 901, max: 1500 },
-      Level4: { min: 1501, max: 3500 }
+      Level4: { min: 1501, max: 3500 },
     };
 
     const range = levelRanges[Level];
@@ -59,19 +78,19 @@ export const purchaseNow = async (req, res) => {
     if (!range) {
       return res.status(400).json({
         statusCode: 400,
-        message: "Invalid level provided."
+        message: "Invalid level provided.",
       });
     }
 
-    // 4️⃣ Check deposit eligibility
+    // 5️⃣ Check deposit eligibility
     if (deposits < range.min || deposits > range.max) {
       return res.status(400).json({
         statusCode: 400,
-        message: `Deposit amount for ${Level} should between ${range.min}–${range.max}`
+        message: `Deposit amount for ${Level} should between ${range.min}–${range.max}`,
       });
     }
 
-    // 5️⃣ Update wallet with userLevel and purchaseAmount
+    // 6️⃣ Update wallet for level purchase
     await pool.query(
       `UPDATE users."wallets"
        SET "userLevel" = $1,
@@ -86,15 +105,14 @@ export const purchaseNow = async (req, res) => {
       data: {
         userId,
         Level,
-        purchaseAmount: deposits
-      }
+        purchaseAmount: deposits,
+      },
     });
-
   } catch (error) {
     console.error("PurchaseNow API Error:", error);
     res.status(500).json({
       statusCode: 500,
-      message: "Internal Server Error"
+      message: "Internal Server Error",
     });
   }
 };
