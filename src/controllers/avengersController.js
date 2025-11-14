@@ -8,6 +8,8 @@ import { handlePositionScreen } from "./screens/positionHandler.js";
 import { handleMemberScreen } from "./screens/membersHandler.js";
 import { getTeamsData } from "./screens/teamsHandler.js";
 import { userQueries } from "../helpers/queries.js";
+import { Dashboard } from './screens/dashboardHandler.js';
+import { commissionHandler } from './screens/commissionHandler.js';
 export const avengersController = async (req, res) => {
   const { userId, screen } = req.body;
 
@@ -23,7 +25,7 @@ export const avengersController = async (req, res) => {
     let response;
 
     switch (screen) {
-      case "games":
+      case "game":
         response = await gamesHandler(userId);
         break;
       case "home":
@@ -49,6 +51,9 @@ export const avengersController = async (req, res) => {
       case "teams":
         response = await getTeamsData(userId);
         break;
+      case "commission":
+        response = await commissionHandler(userId);
+        break;
       case "gameCurrentPlan": 
         const userResult = await pool.query(userQueries.getUserLevelById, [userId]);
         if (userResult.rows.length === 0) {
@@ -69,6 +74,9 @@ export const avengersController = async (req, res) => {
           },
         }
         break ;
+      case "Dashboard":
+        response = await Dashboard();
+        break;
       default:
         response = {
           statusCode: 400,

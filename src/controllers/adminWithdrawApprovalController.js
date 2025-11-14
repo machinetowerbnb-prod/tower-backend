@@ -3,16 +3,17 @@ import { pool } from '../db.js';
 export const adminWithdrawApprovalController = async (req, res) => {
   const client = await pool.connect();
   try {
-    const { userId, status, withdrawId } = req.body;
+    const {status, withdrawId } = req.body;
 
     // Start transaction
     await client.query("BEGIN");
 
     // 1️⃣ Check withdraw record exists
     const withdrawRes = await client.query(
-      `SELECT * FROM users.withdrawals WHERE "withdrawId" = $1 AND "userId" = $2`,
-      [withdrawId, userId]
+      `SELECT * FROM users.withdrawals WHERE "withdrawId" = $1`,
+      [withdrawId]
     );
+    const userId = withdrawRes.rows.length ? withdrawRes.rows[0].userId : null;
 
     if (!withdrawRes.rows.length) {
       await client.query("ROLLBACK");

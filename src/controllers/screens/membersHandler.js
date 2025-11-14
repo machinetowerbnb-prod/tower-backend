@@ -56,7 +56,7 @@
 
         const members = memberRes.rows.map((m) => ({
           email: m.email,
-          createdAt: m.createdAt,
+          timestamp: m.created_at,
           balance: Number(m.balance),
           inviteCode: m.inviteCode,
         }));
