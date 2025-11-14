@@ -1,19 +1,83 @@
-import { adminQueries } from "../../helpers/queries.js";
 import { pool } from "../../db.js";
+
 export const gamesHandler = async (userId) => {
   try {
-    const result = await pool.query(adminQueries.getPlans);
-    const plans = result.rows[0]?.plans || [];
+    if (!userId) {
+      return {
+        statusCode: 400,
+        message: "userId is required",
+        data: null,
+      };
+    }
+
+    // Fetch wallet data
+    const walletQuery = `
+      SELECT 
+        "isFreeMoney",
+        "userLevel",
+        "deposits",
+        "lastActivatedAt"
+      FROM users.wallets 
+      WHERE "userId" = $1
+      LIMIT 1;
+    `;
+
+    const result = await pool.query(walletQuery, [userId]);
+
+    if (result.rows.length === 0) {
+      return {
+        statusCode: 404,
+        message: "Wallet not found",
+        data: null,
+      };
+    }
+
+    const wallet = result.rows[0];
+
+    // Extract values
+    const isFreeTrailSubcraibed = wallet.isFreeMoney || false;
+    const currectLevel = wallet.userLevel || null;
+    const deposits = Number(wallet.deposits || 0);
+    const activationTime = wallet.lastActivatedAt ? Number(wallet.lastActivatedAt) : null;
+
+    // Level ranges
+    const levelRanges = {
+      Level1: { min: 60, max: 500 },
+      Level2: { min: 501, max: 900 },
+      Level3: { min: 901, max: 1500 },
+      Level4: { min: 1501, max: 3500 },
+    };
+
+    // Determine eligible level
+    let elegibleLevel = null;
+
+    for (const level in levelRanges) {
+      const range = levelRanges[level];
+
+      if (deposits >= range.min && deposits <= range.max) {
+        // If user already has this level, do NOT show eligible level
+        if (currectLevel !== level) {
+          elegibleLevel = level;
+        }
+        break;
+      }
+    }
 
     return {
       statusCode: 200,
       message: "success",
-      data: { plans },
+      data: {
+        isFreeTrailSubcraibed,
+        currectLevel,
+        elegibleLevel,
+        activationTime,
+      },
     };
+
   } catch (error) {
     console.error("Games Handler Error:", error);
     return {
-      statusCode: 400,
+      statusCode: 500,
       message: "failed",
       data: null,
     };
