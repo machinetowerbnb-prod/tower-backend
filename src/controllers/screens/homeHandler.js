@@ -32,6 +32,7 @@ export const handleHomeScreen = async (userId) => {
         totalEarnings: wallet.totalEarnings,
         refferalLink,
         bannerLink: master.bannerLink,
+        refferalCode: user.refferalCode
       },
     };
   } catch (error) {

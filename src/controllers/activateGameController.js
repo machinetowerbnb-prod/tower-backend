@@ -32,7 +32,7 @@ export const activateGame = async (req, res) => {
 
     // 🕒 2. 24-hour cooldown
     if (wallet.lastActivatedAt) {
-      const last = new Date(wallet.lastActivatedAt);
+      const last = new Date(Number(wallet.lastActivatedAt));
       const now = new Date();
       const diff = (now - last) / (1000 * 60 * 60);
       if (diff < 24) {
@@ -55,10 +55,11 @@ export const activateGame = async (req, res) => {
 
     // 🔗 4. Walk referral chain
     const me = await client.query(
-      `SELECT "refferedCode" FROM users.userDetails WHERE "userId" = $1`,
+      `SELECT "refferedCode",email FROM users.userDetails WHERE "userId" = $1`,
       [userId]
     );
     let currentCode = me.rows[0]?.refferedCode || null;
+    let senderEmail = me.rows[0]?.email || null;
     const uplines = [];
 
     const getUserByRefCode = `
@@ -95,9 +96,9 @@ export const activateGame = async (req, res) => {
       `UPDATE users.wallets
        SET "earnings" = COALESCE("earnings",0) + $1,
            "totalCommission" = COALESCE("totalCommission",0) + $1,
-           "lastActivatedAt" = NOW()
+           "lastActivatedAt" = $3
        WHERE "userId" = $2`,
-      [userShare, userId]
+      [userShare, userId, Date.now()]
     );
 
     // 💸 7. Distribute to generations + record in rewards
@@ -116,9 +117,9 @@ export const activateGame = async (req, res) => {
       if (walletUpdate.rowCount > 0) {
         await client.query(
           `INSERT INTO users.rewards
-           ("receiverUserId","receiverEmail","senderUserId","commission")
-           VALUES ($1,$2,$3,$4)`,
-          [up.userId, up.email, userId, bonus]
+           ("receiverUserId","receiverEmail","senderUserId","commission","senderEmail")
+           VALUES ($1,$2,$3,$4,$5)`,
+          [up.userId, up.email, userId, bonus,senderEmail]
         );
       }
     }
