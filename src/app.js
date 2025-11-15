@@ -4,45 +4,68 @@ import userRoutes from './routes/userRoutes.js';
 
 const app = express();
 
-// Read env and build whitelist array
-const raw = process.env.FRONTEND_URL || '';
-const whitelist = raw.split(',')
-  .map(s => s.trim())
-  .filter(Boolean); // e.g. ["https://myvercel.app","https://staging.myapp.com"]
+/* --------------------------
+   Build whitelist from env
+---------------------------*/
 
-// CORS options with dynamic origin check
+const raw = process.env.FRONTEND_URL || '';
+const whitelist = raw
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean); 
+
+/* --------------------------
+   CORS Options (Perfect)
+---------------------------*/
+
 const corsOptions = {
-  origin: function(origin, callback) {
-    // Allow non-browser requests like curl or server-to-server where origin is undefined
+  origin: (origin, callback) => {
+    // Allow server-to-server or curl (no origin)
     if (!origin) return callback(null, true);
 
+    // If whitelist is empty → deny unknown origins
     if (whitelist.length === 0) {
-      // If no whitelist provided, you can allow everything (not recommended for prod)
-      return callback(null, true);
+      return callback(null, true); // allow all (or make it false)
     }
 
-    if (whitelist.indexOf(origin) !== -1) {
+    // Check if origin allowed
+    if (whitelist.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('❌ Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['Content-Length', 'X-Kuma-Revision'], // if you need to expose specific headers
-  credentials: true, // set to true if you use cookies/auth headers and want to allow them
+
+  credentials: true, // needed for cookies or auth headers
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 204
 };
 
-// Apply CORS globally
+/* --------------------------
+   Apply CORS
+---------------------------*/
+
 app.use(cors(corsOptions));
 
-// Make sure preflight (OPTIONS) requests are handled
-app.options('*', cors(corsOptions));
+// Preflight handler (Express v5 safe)
+app.options('/(.*)', cors(corsOptions));
+
+/* --------------------------
+   Middlewares
+---------------------------*/
 
 app.use(express.json());
 
+/* --------------------------
+   Routes
+---------------------------*/
+
 app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/api', userRoutes);
+
+/* --------------------------
+   Export app
+---------------------------*/
 
 export default app;
