@@ -2,30 +2,15 @@ import { pool } from "../db.js";
 import { userQueries } from "../helpers/queries.js";
 import { sendMail } from "../utils/email.js";
 
-export const emailVerify = async (req, res) => {
+export const emailVerify = async (email) => {
   try {
-    const { email } = req.body;
-
     if (!email) {
-      return res.status(400).json({
+      return {
         statusCode: 400,
         message: "failed",
         data: null,
-      });
+      };
     }
-
-    // 1️⃣ Check if user exists
-    const userResult = await pool.query(userQueries.getUserByEmail, [email]);
-
-    if (userResult.rows.length === 0) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: "failed",
-        data: null,
-      });
-    }
-
-    const user = userResult.rows[0];
 
     // 2️⃣ Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -38,7 +23,8 @@ export const emailVerify = async (req, res) => {
 
     // 5️⃣ Insert new OTP into DB
     await pool.query(userQueries.insertOtp, [email, otp, expiresAt]);
-   const verifyLink = `${process.env.FRONTEND_URL}/reset-password?email=${email}`;
+   const verifyLink = `${process.env.FRONTEND_URL}/home?email=${email}?otp=${otp}`;
+   console.log("Verify Link:", verifyLink);
     // 6️⃣ Build HTML email
     const html = `
 <!DOCTYPE html>
@@ -46,54 +32,56 @@ export const emailVerify = async (req, res) => {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Verify Your Email</title>
+    <title>Email Verification</title>
   </head>
+
   <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0;">
-    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+    <table align="center" cellpadding="0" cellspacing="0" width="100%" 
+      style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+      
       <tr>
         <td style="padding: 30px 40px; text-align: center; background: linear-gradient(135deg, #007BFF, #00B4DB); border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fff; margin: 0; font-size: 24px;">✉️ Verify Email Request</h1>
+          <h1 style="color: #fff; margin: 0; font-size: 24px;">Verify your email address for TowerBNB</h1>
         </td>
       </tr>
 
       <tr>
         <td style="padding: 30px 40px;">
-          <p style="font-size: 16px; color: #333; margin-bottom: 15px;">Hello <b>${
-            user.userName || "User"
-          }</b>,</p>
-          <p style="font-size: 15px; color: #555; line-height: 1.6;">
-            We received a request to verify your email. Please use the following One-Time Password (OTP) to continue:
+
+          <p style="font-size: 16px; color: #333; margin-bottom: 15px;">
+            Hello Towerians,
           </p>
 
-          <!-- OTP Block -->
-          <div style="text-align: center; margin: 25px 0;">
-            <div style="display: inline-block; background-color: #f0f4ff; border: 2px dashed #007BFF; border-radius: 8px; padding: 15px 25px;">
-              <p style="font-size: 28px; letter-spacing: 4px; color: #007BFF; margin: 0; font-weight: bold;">
-                ${otp}
-              </p>
-            </div>
-          </div>
-
-          <p style="font-size: 15px; color: #555; line-height: 1.6;">
-            you can click the button below to go directly to the verify email page:
+          <p style="font-size: 15px; color: #555; line-height: 1.7; margin-bottom: 20px;">
+            Welcome to <b>TowerBNB</b>!<br/>
+            We’re excited to have you join us. To complete your registration and activate your account, please verify your email address by clicking the button below:
           </p>
 
+          <!-- Verify Button -->
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyLink}" style="background-color: #007BFF; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
-              Verify Email
+            <a href="${verifyLink}" 
+              style="background-color: #007BFF; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
+              Verify My Email
             </a>
           </div>
 
-          <p style="font-size: 14px; color: #666; line-height: 1.6;">
-            This OTP and link will expire in <b>10 minutes</b>. If you didn’t request a password reset, you can safely ignore this email.
+          <p style="font-size: 15px; color: #555; line-height: 1.7;">
+            Once verified, you'll have full access to your account.  
+            This helps us ensure your account belongs to you.
+          </p>
+
+          <p style="font-size: 15px; color: #555; line-height: 1.7;">
+            If you didn't sign up, you can safely ignore this email or contact our Support team for assistance.
           </p>
 
           <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
 
           <p style="font-size: 14px; color: #888; text-align: center;">
-            Regards, <br/>
-            <b>Machine Tower Team</b>
+            Thank you for being part of our community!<br/><br/>
+            Warm regards,<br/>
+            <b>The TowerBNB Team</b>
           </p>
+
         </td>
       </tr>
     </table>
@@ -104,22 +92,22 @@ export const emailVerify = async (req, res) => {
     // 7️⃣ Send Email via Resend API
     await sendMail({
       to: email,
-      subject: "Verify your email address - Tower App",
+      subject: "Verify your email address for TowerBNB",
       html,
     });
 
     // ✅ Success Response
-    return res.status(200).json({
+    return {
       statusCode: 200,
       message: "Email Sent Successfully",
       data: null,
-    });
+    };
   } catch (error) {
     console.error("Email Verify Error:", error);
-    return res.status(500).json({
+    return {
       statusCode: 500,
       message: "failed",
       data: null,
-    });
+    };
   }
 };

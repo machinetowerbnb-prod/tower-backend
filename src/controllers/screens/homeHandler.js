@@ -21,7 +21,7 @@ export const handleHomeScreen = async (userId) => {
     if (!master) throw new Error("Master data not found");
 
     // 5️⃣ Build referral link
-    const refferalLink = `${master.gameLink}/referal?code=${user.refferalCode}`;
+    const refferalLink = `${master.gameLink}/signup?code=${user.refferalCode}`;
 
     // ✅ Final response data
     return {

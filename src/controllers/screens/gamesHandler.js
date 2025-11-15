@@ -56,9 +56,7 @@ export const gamesHandler = async (userId) => {
 
       if (deposits >= range.min && deposits <= range.max) {
         // If user already has this level, do NOT show eligible level
-        if (currectLevel !== level) {
-          elegibleLevel = level;
-        }
+        elegibleLevel = level;
         break;
       }
     }

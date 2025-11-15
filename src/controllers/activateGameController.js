@@ -84,7 +84,7 @@ export const activateGame = async (req, res) => {
     let totalGenPercent = 0;
     uplines.forEach(up => (totalGenPercent += genPercents[up.gen]));
 
-    const userPercent = 100 - totalGenPercent;
+    const userPercent = 100;
     const genBonuses = {};
     uplines.forEach(up => {
       genBonuses[up.gen] = (totalCommission * genPercents[up.gen]) / 100;
