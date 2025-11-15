@@ -82,7 +82,7 @@ export const forgotPassword = async (req, res) => {
 
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetLink}" style="background-color: #007BFF; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
-              Reset Password
+              Reset your password for TowerBNB 
             </a>
           </div>
 

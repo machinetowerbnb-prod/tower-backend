@@ -3,7 +3,7 @@ import { pool } from '../db.js';
 import { generateReferralCode, generateUserId } from "../helpers/generateReferralCode.js";
 import { isValidEmail, isValidPasscode, isStrongPassword } from "../helpers/validations.js";
 import { userQueries } from "../helpers/queries.js";
-
+import { emailVerify } from './emailVerify.js';
 export const registerUser = async (req, res) => {
   const { userName, email, password, refferedCode, passcode } = req.body;
 
@@ -73,9 +73,14 @@ export const registerUser = async (req, res) => {
         currentReferralCode = refRow.refferedcode || null;
       }
     }
+    let emailSucess = await emailVerify(email);
+    if(emailSucess.statusCode !== 200){
+      await client.query('ROLLBACK');
+      return  res.status(500).json({ statusCode: 500, message: "Failed" });
+    }
 
+    // Commit transaction
     await client.query('COMMIT');
-
     return res.status(201).json({
       statusCode: 201,
       message: "User registered successfully!",
@@ -87,10 +92,11 @@ export const registerUser = async (req, res) => {
         refferedCode: refferedCode || null,
       },
     });
+
   } catch (err) {
     await client.query('ROLLBACK');
     console.error("Error registering user:", err);
-    return res.status(500).json({ statusCode: 500, message: "Internal server error" });
+    return res.status(500).json({ statusCode: 500, message: "Internal Server Error" });
   } finally {
     client.release();
   }
