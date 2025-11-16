@@ -23,7 +23,7 @@ export const emailVerify = async (email) => {
 
     // 5️⃣ Insert new OTP into DB
     await pool.query(userQueries.insertOtp, [email, otp, expiresAt]);
-   const verifyLink = `${process.env.FRONTEND_URL}/email-confirm?email=${email}?otp=${otp}`;
+   const verifyLink = `${process.env.FRONTEND_URL}/email-confirm?email=${email}&otp=${otp}`;
    console.log("Verify Link:", verifyLink);
     // 6️⃣ Build HTML email
     const html = `
