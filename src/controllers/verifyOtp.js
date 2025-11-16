@@ -55,11 +55,17 @@ export const verifyOtp = async (req, res) => {
     // 5️⃣ Delete OTP record
     await pool.query(userQueries.deleteOldOtp, [email]);
 
+    const userResult = await pool.query(userQueries.getUserByEmail, [email]);
+    const user = userResult.rows[0];
+
     // ✅ Success
     return res.status(200).json({
       statusCode: 200,
       message: "Email Verified Successfully",
-      data: null,
+      data: {
+        userId: user.userId,
+        email: user.email,
+      },
     });
   } catch (error) {
     console.error("verifyOtp Error:", error);

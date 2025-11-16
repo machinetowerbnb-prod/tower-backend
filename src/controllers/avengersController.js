@@ -10,6 +10,7 @@ import { getTeamsData } from "./screens/teamsHandler.js";
 import { userQueries } from "../helpers/queries.js";
 import { Dashboard } from './screens/dashboardHandler.js';
 import { commissionHandler } from './screens/commissionHandler.js';
+import { profileHandler } from './screens/profileHandler.js';
 export const avengersController = async (req, res) => {
   const { userId, screen } = req.body;
 
@@ -42,6 +43,9 @@ export const avengersController = async (req, res) => {
         break;
       case "position":
         response = await handlePositionScreen(userId);
+        break;
+      case "profile":
+        response = await profileHandler(userId);
         break;
       case "genOne":
       case "genTwo":
