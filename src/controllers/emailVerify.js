@@ -64,6 +64,9 @@ export const emailVerify = async (email) => {
               Verify My Email
             </a>
           </div>
+          <a href="${verifyLink}">
+              Verify My Email
+            </a>
 
           <p style="font-size: 15px; color: #555; line-height: 1.7;">
             Once verified, you'll have full access to your account.  
