@@ -23,7 +23,7 @@ export const emailVerify = async (email) => {
 
     // 5️⃣ Insert new OTP into DB
     await pool.query(userQueries.insertOtp, [email, otp, expiresAt]);
-   const verifyLink = `${process.env.FRONTEND_URL}/email-confirm?email=${email}?otp=${otp}`;
+   const verifyLink = `${process.env.FRONTEND_URL}/email-confirm?email=${email}&otp=${otp}`;
    console.log("Verify Link:", verifyLink);
     // 6️⃣ Build HTML email
     const html = `
@@ -59,15 +59,11 @@ export const emailVerify = async (email) => {
 
           <!-- Verify Button -->
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${verifyLink}" 
+            <a href="${verifyLink}" target="_blank"
               style="background-color: #007BFF; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
               Verify My Email
             </a>
           </div>
-          <a href="${verifyLink}">
-              Verify My Email
-            </a>
-
           <p style="font-size: 15px; color: #555; line-height: 1.7;">
             Once verified, you'll have full access to your account.  
             This helps us ensure your account belongs to you.
