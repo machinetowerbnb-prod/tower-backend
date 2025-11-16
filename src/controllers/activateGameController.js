@@ -98,9 +98,9 @@ export const activateGame = async (req, res) => {
     await client.query(
       `UPDATE users.wallets
        SET 
-         "earnings" = COALESCE("earnings", 0) + $1,
-         "totalCommission" = COALESCE("totalCommission", 0) + $1,
-         "userTodaysCommission" = $1,
+         "earnings" = ROUND(COALESCE("earnings", 0) + $1::numeric, 1),
+         "totalCommission" = ROUND(COALESCE("totalCommission", 0) + $1::numeric, 1),
+         "userTodaysCommission" = ROUND($1::numeric, 1),
          "lastActivatedAt" = $3
        WHERE "userId" = $2`,
       [userShare, userId, nowTimestamp]
@@ -122,8 +122,8 @@ export const activateGame = async (req, res) => {
       // Update wallet of upline
       const update = await client.query(
         `UPDATE users.wallets
-         SET "earnings" = COALESCE("earnings", 0) + $1,
-             "totalCommission" = COALESCE("totalCommission", 0) + $1
+         SET "earnings" = ROUND(COALESCE("earnings", 0) + $1::numeric, 1),
+             "totalCommission" = ROUND(COALESCE("totalCommission", 0) + $1::numeric, 1)
          WHERE "userId" = $2 RETURNING "userId"`,
         [bonus, up.userId]
       );
