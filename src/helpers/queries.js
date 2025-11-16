@@ -21,7 +21,7 @@ export const userQueries = {
   `,
   //  Get user by email (for login)
   getUserById: `
-    SELECT "userId", email, password, "isActiveUser"
+    SELECT "userId", email, password, "isActiveUser","userName"
     FROM users.userDetails
     WHERE "userId" = $1
   `,
@@ -203,7 +203,9 @@ export const avengersQueries = {
   getWalletSummary: `
     SELECT 
       COALESCE(deposits, 0) AS "totalDeposits", 
-      COALESCE(earnings, 0) AS "totalEarnings"
+      COALESCE(earnings, 0) AS "totalEarnings",
+      COALESCE("userTodaysCommission", 0) AS "usersTodaysCommission",
+      COALESCE("totalCommission", 0) AS "grandTotalCommission"
     FROM users.wallets 
     WHERE "userId" = $1;
   `,
@@ -232,6 +234,19 @@ export const avengersQueries = {
     FROM admin.master
     LIMIT 1;
   `,
+   getTeamDailyCommission: `
+    SELECT 
+      COALESCE(SUM(commission), 0) AS "teamDailyCommission"
+    FROM users.rewards
+    WHERE "receiverUserId" = $1
+      AND DATE("createdAt") = CURRENT_DATE;
+  `,
+  getTotalWithdrawals: `
+  SELECT COALESCE(SUM(amount), 0) AS "totalWithdrawals"
+  FROM users.withdrawals
+  WHERE "userId" = $1;
+`,
+
 };
 
 // src/helpers/queries.js

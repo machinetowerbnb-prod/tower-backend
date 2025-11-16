@@ -39,10 +39,10 @@ export const forgotPassword = async (req, res) => {
     await pool.query(userQueries.insertOtp, [email, otp, expiresAt]);
 
     // 6️⃣ Generate reset link (with otp as query param)
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?email=${email}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?email=${email}&otp=${otp}`;
 
     // 7️⃣ Compose clean email HTML
-    const html = `
+ const html = `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -50,58 +50,76 @@ export const forgotPassword = async (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Password Reset</title>
   </head>
-  <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f7fa; margin: 0; padding: 0;">
-    <table align="center" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+
+  <body style="margin:0; padding:0; background-color:#f5f7fa; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    <table align="center" cellpadding="0" cellspacing="0" width="100%"
+      style="max-width:600px; margin:40px auto; background:#ffffff; border-radius:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+      
+      <!-- Header -->
       <tr>
-        <td style="padding: 30px 40px; text-align: center; background: linear-gradient(135deg, #007BFF, #00B4DB); border-radius: 12px 12px 0 0;">
-          <h1 style="color: #fff; margin: 0; font-size: 24px;">🔐 Password Reset Request</h1>
+        <td style="padding:30px 40px; text-align:center;
+          background:linear-gradient(135deg, #007BFF, #00B4DB);
+          border-radius:14px 14px 0 0;">
+          <h1 style="margin:0; font-size:24px; color:#fff;">
+            🔐 Reset Your Password
+          </h1>
         </td>
       </tr>
 
+      <!-- Body -->
       <tr>
-        <td style="padding: 30px 40px;">
-          <p style="font-size: 16px; color: #333; margin-bottom: 15px;">Hello <b>${
-            user.username || "User"
-          }</b>,</p>
-          <p style="font-size: 15px; color: #555; line-height: 1.6;">
-            We received a request to reset your password. Please use the following One-Time Password (OTP) to continue:
+        <td style="padding:35px 40px;">
+
+          <p style="font-size:16px; color:#333; margin-bottom:15px;">
+            Hello <b>${user.userName || "User"}</b>,
           </p>
 
-          <!-- OTP Block -->
-          <div style="text-align: center; margin: 25px 0;">
-            <div style="display: inline-block; background-color: #f0f4ff; border: 2px dashed #007BFF; border-radius: 8px; padding: 15px 25px;">
-              <p style="font-size: 28px; letter-spacing: 4px; color: #007BFF; margin: 0; font-weight: bold;">
-                ${otp}
-              </p>
-            </div>
-          </div>
-
-          <p style="font-size: 15px; color: #555; line-height: 1.6;">
-            you can click the button below to go directly to the reset page:
+          <p style="font-size:15px; color:#555; line-height:1.6; margin-bottom:25px;">
+            We received a request to reset your password.  
+            To proceed, please click the button below:
           </p>
 
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="background-color: #007BFF; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">
-              Reset your password for TowerBNB 
+          <!-- Reset Button -->
+          <div style="text-align:center; margin:35px 0;">
+            <a href="${resetLink}"
+              style="
+                background:#007BFF;
+                color:#ffffff;
+                padding:12px 26px;
+                border-radius:8px;
+                text-decoration:none;
+                font-weight:600;
+                display:inline-block;
+              ">
+              Reset Password
             </a>
           </div>
 
-          <p style="font-size: 14px; color: #666; line-height: 1.6;">
-            This OTP and link will expire in <b>10 minutes</b>. If you didn’t request a password reset, you can safely ignore this email.
+          <p style="font-size:14px; color:#666; line-height:1.6;">
+            For your protection, this link will expire in <b>10 minutes</b>.  
+            If you did not request a password reset, please ignore this email.
           </p>
 
-          <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+          <hr style="margin:30px 0; border:0; border-top:1px solid #eee;" />
 
-          <p style="font-size: 14px; color: #888; text-align: center;">
+          <!-- Footer -->
+          <p style="text-align:center; font-size:14px; color:#888; margin:0;">
             Regards, <br/>
             <b>Machine Tower Team</b>
           </p>
+
         </td>
       </tr>
+
     </table>
+
   </body>
 </html>
 `;
+
+
 
     // 8️⃣ Send the email
     await sendMail({
