@@ -316,9 +316,19 @@ export const historyQueries = {
         'withdraw' AS type,
         amount,
         "timestamp",
-        "withdrawId" AS "transactionId"
+        "withdrawId" AS "transactionId",
+        status
       FROM users.withdrawals
       WHERE "userId" = $1
+      ORDER BY "timestamp" DESC;
+  `,
+  getRewardsByUser: `
+    SELECT 
+        'reward' AS type,
+        commission AS amount,
+        "createdAt" AS "timestamp"
+      FROM users.rewards
+      WHERE "senderUserId" = $1
       ORDER BY "timestamp" DESC;
   `,
 };

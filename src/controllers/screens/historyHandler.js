@@ -9,15 +9,23 @@ export const handleHistoryScreen = async (userId) => {
     // 🟢 Fetch withdrawals using helper query
     const withdrawalsResult = await pool.query(historyQueries.getWithdrawalsByUser, [userId]);
 
-    // 🧩 Combine and sort
-    const transactions = [...depositsResult.rows, ...withdrawalsResult.rows].sort(
-      (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-    );
+    // 🟢 Fetch rewards using helper query
+    const rewardsResult = await pool.query(historyQueries.getRewardsByUser, [userId]);
+
+    // 🟢 Combine deposits, withdrawals, and rewards
+    const allTransactions = [
+      ...depositsResult.rows,
+      ...withdrawalsResult.rows,
+      ...rewardsResult.rows,
+    ];
+
+    // 🟢 Sort all transactions by timestamp descending
+    allTransactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     return {
       statusCode: 200,
       message: "success",
-      data: { transactions },
+      data: { transactions: allTransactions },
     };
   } catch (error) {
     console.error("History Screen Handler Error:", error);
