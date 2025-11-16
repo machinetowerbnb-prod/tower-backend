@@ -289,7 +289,7 @@ export const walletQueries = {
   // 2️⃣ Update wallet earnings after withdrawal
   updateWalletEarnings: `
     UPDATE users.wallets
-    SET earnings = $1, updated_at = NOW()
+    SET earnings = ROUND($1::numeric, 1), updated_at = NOW()
     WHERE "userId" = $2;
   `,
 

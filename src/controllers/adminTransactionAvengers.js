@@ -75,11 +75,13 @@ export const adminTransactionAvengers = async (req, res) => {
     const newBalance =
       action === "Credit" ? currentBalance + amt : currentBalance - amt;
 
-    // 4️⃣ Update wallet
-    await pool.query(
-      `UPDATE users.wallets SET "${column}" = $1 WHERE "userId" = $2`,
-      [newBalance, userId]
-    );
+    // 4️⃣ Update wallet (round earnings to 1 decimal if updating earnings column)
+    const updateQuery =
+      column === "earnings"
+        ? `UPDATE users.wallets SET "${column}" = ROUND($1::numeric, 1) WHERE "userId" = $2`
+        : `UPDATE users.wallets SET "${column}" = $1 WHERE "userId" = $2`;
+
+    await pool.query(updateQuery, [newBalance, userId]);
 
     return res.status(200).json({
       statusCode: 200,
