@@ -18,6 +18,7 @@ import { adminAveners } from "../controllers/adminAvengers.js";
 import { adminTransactionAvengers } from "../controllers/adminTransactionAvengers.js";
 import { adminUpdateUserStatus } from "../controllers/adminUserStatusController.js";
 import { adminWithdrawFilter } from "../controllers/adminWithdrawFilter.js";
+import { invoice, payment,paymentStatus } from "../payment.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
@@ -39,4 +40,7 @@ router.post("/adminTransactionAvengers", adminTransactionAvengers);
 router.post("/adminUpdateUserStatus", adminUpdateUserStatus);
 router.post("/adminWithdrawFilter", adminWithdrawFilter);
 router.post("/change-password", checkActiveUser ,changePassword);
+router.post("/oxapay/webhook",payment);
+router.post("/create-invoice",invoice);
+router.get("/payment/status/:trackId", paymentStatus);
 export default router;

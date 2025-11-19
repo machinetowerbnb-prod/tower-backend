@@ -10,7 +10,7 @@ export const getTeamsData = async (userId) => {
       return { message: "User not found" };
     }
 
-    const { firstGen, secondGen, thirdGen } = genRes.rows[0];
+    const { firstGen, secondGen, thirdGen,userName } = genRes.rows[0];
 
     const allGenUserIds = [...(firstGen || []), ...(secondGen || []), ...(thirdGen || [])];
 
@@ -20,6 +20,7 @@ export const getTeamsData = async (userId) => {
         statusCode: 200,
         message: "success",
         data: {
+          username:userName,
           totalDownlines: 0,
           totalPromationComission: 0,
           teamRecharge: 0,
@@ -68,6 +69,7 @@ export const getTeamsData = async (userId) => {
       statusCode: 200,
       message: "success",
       data: {
+        username:userName,
         totalDownlines,
         totalPromationComission,
         teamRecharge,
