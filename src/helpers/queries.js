@@ -144,7 +144,7 @@ export const userQueries = {
   `,
 
   getUserGenerations: `
-    SELECT "firstGen", "secondGen", "thirdGen"
+    SELECT "firstGen", "secondGen", "thirdGen","userName"
     FROM users.userDetails
     WHERE "userId" = $1;
   `,
