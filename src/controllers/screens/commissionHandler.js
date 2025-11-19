@@ -11,28 +11,30 @@ export const commissionHandler = async (userId) => {
 
       // Fetch all commission details for that user from rewards table
       const rewardsResult = await pool.query(
-        `SELECT "senderEmail", "commission", "createdAt"
+        `SELECT "senderUserId", "senderEmail", "commission", "createdAt"
          FROM users.rewards
          WHERE "receiverUserId" = $1
          ORDER BY "createdAt" DESC`,
         [userId]
       );
 
-      const commissionDetails = rewardsResult.rows.map((row) => {
-        // Mask email like m******ms@gmail.com
-        const [name, domain] = row.senderEmail.split("@");
-        const maskedName =
-          name.length > 2
-            ? `${name[0]}${"*".repeat(name.length - 2)}${name.slice(-1)}`
-            : name;
-        const maskedEmail = `${maskedName}@${domain}`;
+      const commissionDetails = rewardsResult.rows
+        .filter((row) => row.senderUserId !== userId) // Exclude if sender and receiver are the same user
+        .map((row) => {
+          // Mask email like m******ms@gmail.com
+          const [name, domain] = row.senderEmail.split("@");
+          const maskedName =
+            name.length > 2
+              ? `${name[0]}${"*".repeat(name.length - 2)}${name.slice(-1)}`
+              : name;
+          const maskedEmail = `${maskedName}@${domain}`;
 
-        return {
-          email: maskedEmail,
-          timestamp: row.createdAt,
-          commission: parseFloat(row.commission) || 0,
-        };
-      });
+          return {
+            email: maskedEmail,
+            timestamp: row.createdAt,
+            commission: parseFloat(row.commission) || 0,
+          };
+        });
 
       return {
         statusCode: 200,

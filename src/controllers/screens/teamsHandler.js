@@ -12,7 +12,7 @@ export const getTeamsData = async (userId) => {
 
     const { firstGen, secondGen, thirdGen } = genRes.rows[0];
 
-    const allGenUserIds = [userId, ...(firstGen || []), ...(secondGen || []), ...(thirdGen || [])];
+    const allGenUserIds = [...(firstGen || []), ...(secondGen || []), ...(thirdGen || [])];
 
 
     if (allGenUserIds.length === 0) {
