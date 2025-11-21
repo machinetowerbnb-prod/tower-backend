@@ -47,7 +47,7 @@ export const invoice = async (req, res) => {
     if (!callback_url) return res.status(400).json({ success: false, error: "callback_url is required" });
 
      // We create a combined return url with user-defined success & failure routes
-    const return_url = `${process.env.FRONTEND_URL}/success/?trackId={track_id}`;
+    const return_url = `${process.env.FRONTEND_URL}/success`;
 
     const payload = {
       amount: amount.toString(),
