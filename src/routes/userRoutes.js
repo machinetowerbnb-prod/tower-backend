@@ -20,7 +20,8 @@ import { adminUpdateUserStatus } from "../controllers/adminUserStatusController.
 import { adminWithdrawFilter } from "../controllers/adminWithdrawFilter.js";
 import { sendBulkEmails } from "../controllers/bulkEmailController.js";
 import { createPayin,checkPayinStatus } from "../controllers/payment.js";
-
+import { adminUpdatePasscode } from "../controllers/adminUpdatePasscode.js";
+import { adminGetDeposits } from "../controllers/adminGetDeposits.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
@@ -34,6 +35,7 @@ router.post("/avengers", checkActiveUser , avengersController);
 router.post("/confirm", checkActiveUser ,depositConfirmController);
 router.post("/withdraw",checkActiveUser, withdrawController);
 router.post("/adminUpdate", adminUpdateController);
+router.post("/adminUpdatePasscode", adminUpdatePasscode);
 router.post("/withdraw-approval", adminWithdrawApprovalController);
 router.post("/purchaseNow", checkActiveUser ,purchaseNow);
 router.post("/activateGame",checkActiveUser, activateGame);
@@ -44,6 +46,7 @@ router.post("/adminWithdrawFilter", adminWithdrawFilter);
 router.post("/change-password", checkActiveUser ,changePassword);
 router.post("/send-bulk-emails", sendBulkEmails);
 router.post("/create-payin", createPayin);
+router.get("/adminGetDeposits", adminGetDeposits);
 // router.post("/webhook", payinWebhook);
 router.get("/payin-status/:track_id", checkPayinStatus);
 

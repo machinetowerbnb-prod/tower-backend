@@ -156,7 +156,7 @@ export const userQueries = {
   `,
 
   getWalletsByUserIds: `
-    SELECT "userId", "deposits", "totalCommission"
+    SELECT "userId", "deposits", "totalCommission" ,"earnings"
     FROM users.wallets
     WHERE "userId" = ANY($1::bigint[]);
   `,
@@ -172,6 +172,16 @@ export const userQueries = {
   FROM users.wallets
   WHERE "userId" = $1;
 `,
+getUsersDetailsByIds: `
+    SELECT 
+      "userId",
+      "userName",
+      "email",
+      "refferalCode",
+      "isActiveUser"
+    FROM users.userDetails
+    WHERE "userId" = ANY($1::bigint[]);
+  `, 
 };
 
 export const adminQueries = {
