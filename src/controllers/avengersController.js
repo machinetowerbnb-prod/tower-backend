@@ -12,7 +12,7 @@ import { Dashboard } from './screens/dashboardHandler.js';
 import { commissionHandler } from './screens/commissionHandler.js';
 import { profileHandler } from './screens/profileHandler.js';
 export const avengersController = async (req, res) => {
-  const { userId, screen } = req.body;
+  const { userId, screen , isAdmin = false } = req.body;
 
   try {
     if (!userId || !screen) {
@@ -53,7 +53,7 @@ export const avengersController = async (req, res) => {
         response = await handleMemberScreen(userId, screen);
         break;
       case "teams":
-        response = await getTeamsData(userId);
+        response = await getTeamsData(userId,isAdmin);
         break;
       case "commission":
         response = await commissionHandler(userId);

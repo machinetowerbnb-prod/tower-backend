@@ -36,6 +36,7 @@ export const Users = async () => {
 
       return {
         id: index + 1,
+        userId: user.userId || "N/A",
         name: user.name || "N/A",
         email: user.email || "N/A",
         referralId: user.referralId || "N/A",
