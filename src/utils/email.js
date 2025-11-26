@@ -3,7 +3,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 export const sendMail = async ({ to, subject, html }) => {
   const msg = {
     to,
-    from: 'machinetowerbnb@gmail.com', // Must be a verified sender in SendGrid
+    from: 'support@machine-towerbnb.com', // Must be a verified sender in SendGrid
     subject,
     html,
   };
