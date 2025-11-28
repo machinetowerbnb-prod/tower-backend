@@ -264,8 +264,8 @@ export const avengersQueries = {
 export const depositQueries = {
   insertDeposit: `
     INSERT INTO users.deposits 
-      ("userId", amount, status, "transactionId", "transactionAccount")
-    VALUES ($1, $2, $3, $4, $5)
+      ("userId", amount, status, "transactionId", "transactionAccount",track_id)
+    VALUES ($1, $2, $3, $4, $5,$6)
     RETURNING id;
   `,
 
@@ -274,15 +274,16 @@ export const depositQueries = {
   `,
 
   createWallet: `
-    INSERT INTO users.wallets ("userId", deposits, earnings)
-    VALUES ($1, $2, 0)
+    INSERT INTO users.wallets ("userId", deposits,track_id earnings)
+    VALUES ($1, $2,$3, 0)
     RETURNING *;
   `,
 
   updateWalletDeposit: `
     UPDATE users.wallets 
     SET deposits = deposits + $1
-    WHERE "userId" = $2
+    status = $3
+    WHERE track_id = $2
     RETURNING *;
   `,
 };

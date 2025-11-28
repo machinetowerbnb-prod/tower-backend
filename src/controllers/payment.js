@@ -2,7 +2,7 @@
 import axios from "axios";
 import { pool } from '../db.js';
 import dotenv from "dotenv";
-
+import { depositQueries } from "../helpers/queries.js";
 dotenv.config();
 
 // CONFIG
@@ -47,22 +47,18 @@ const upsertPayin = async (track_id, data) => {
 /**
  * 1️⃣ CREATE PAYIN (User copies details → Pays manually)
  */
-export const createPayin = async (req, res) => {
+export const createPayin = async (depositData) => {
   try {
-    const { amount, to_currency = "USDT", network = "TRON", order_id } = req.body;
-
-    if (!amount) return res.status(400).json({ success: false, error: "amount required" });
-    if (!order_id) return res.status(400).json({ success: false, error: "order_id required" });
-
+    const { amount, to_currency = "USDT", network = "TRON", order_id } = depositData;
     // REQUIRED fields from new OxaPay docs
     const payload = {
       amount: amount.toString(),
       to_currency,
       network, // 🔥 REQUIRED
       order_id,
-      type: "dynamic"
+      type: "static"
     };
-
+    console.log("📤 OxaPay Payload:", payload);
     const headers = {
       "Content-Type": "application/json",
       "merchant_api_key": OXAPAY_API_KEY   // 🔥 CORRECT HEADER (according to docs)
@@ -84,11 +80,11 @@ export const createPayin = async (req, res) => {
       oxa_response: data
     });
 
-    return res.json({ success: true, payin: data });
+    return { success: true, data }
 
   } catch (err) {
     console.error("❌ Payin Create Error", err.response?.data || err.message);
-    res.status(500).json({ success: false, error: err.response?.data || err.message });
+    return { success: false, error: err.response?.data || err.message }
   }
 };
 
@@ -140,10 +136,11 @@ export const createPayin = async (req, res) => {
  * 3️⃣ PAYMENT STATUS API (Client polls this)
  */
 export const checkPayinStatus = async (req, res) => {
+   const client = await pool.connect();
   try {
     let track_id = req.params.track_id;
-
     // check local DB first
+     await client.query("BEGIN");
     const result = await pool.query(
       "SELECT * FROM users.payments WHERE track_id=$1",
       [track_id]
@@ -178,11 +175,16 @@ export const checkPayinStatus = async (req, res) => {
       status: oxapay.status,
       oxa_response: oxapay
     });
+    if(oxapay.status === "paid") {
+    await client.query(depositQueries.updateWalletDeposit, [record.amount, track_id , oxapay.status]);
+    }
+    await client.query("COMMIT");
 
-    return res.json({ success: true, status: oxapay.status, oxapay });
+    return res.json({ success: true, status: oxapay.status, data: oxapay });
 
   } catch (err) {
+     await client.query("ROLLBACK");
     console.error("❌ Status Check Error", err.response?.data || err.message);
-    res.status(500).json({ success: false, error: err.response?.data || err.message });
+    res.status(500).json({ success: false, statusCode: 500, data:null, error: err.response?.data || err.message });
   }
 };
