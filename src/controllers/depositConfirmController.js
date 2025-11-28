@@ -2,7 +2,7 @@
 import { pool } from '../db.js';
 import { depositQueries } from "../helpers/queries.js";
 import { v4 as uuidv4 } from "uuid";
-
+import { createPayin } from './payment.js';
 export const depositConfirmController = async (req, res) => {
   const { userId, amount, transactionAccount } = req.body;
 
@@ -23,16 +23,6 @@ export const depositConfirmController = async (req, res) => {
 
     // 1️⃣ Generate transaction ID
     const transactionId = `TXN-${uuidv4().slice(0, 8).toUpperCase()}`;
-
-    // 2️⃣ Insert deposit record
-    await client.query(depositQueries.insertDeposit, [
-      userId,
-      amount,
-      "success",
-      transactionId,
-      transactionAccount,
-    ]);
-
     // 3️⃣ Check if wallet exists
     const walletResult = await client.query(depositQueries.getWalletByUserId, [userId]);
     const userCheck = await client.query(
@@ -47,21 +37,45 @@ export const depositConfirmController = async (req, res) => {
         [userId]
       );
     }
+   //Integrate createPayin function here if needed 
+   const payload = {
+       order_id: transactionId,
+       amount: amount,
+       to_currency:transactionAccount?.name == "USDC Tether Tron (TRC20)" ? "USDT" : transactionAccount?.name,
+       network: transactionAccount?.accountId || "BSC",
+     };
+    const getResponse =  await createPayin(payload);
+    if (!getResponse || !getResponse.success) {
+      console.error("💥 Payin Creation Failed:", getResponse?.error || "Something Went wrong");
+      await client.query("ROLLBACK");
+      throw new Error("Failed to create payin");
+    }
+    const track_id = getResponse.data.track_id;
+// 2️⃣ Insert deposit record
+    await client.query(depositQueries.insertDeposit, [
+      userId,
+      amount,
+      "pending",
+      transactionId,
+      transactionAccount,
+      track_id
+    ]);
+    // 5️⃣ Create or update wallet
+    if (amount <= 0) {
+      throw new Error("Deposit amount must be greater than zero");  
+   }
 
     if (walletResult.rows.length === 0) {
       // No wallet — create one
-      await client.query(depositQueries.createWallet, [userId, amount]);
-    } else {
-      // Wallet exists — update deposits
-      await client.query(depositQueries.updateWalletDeposit, [amount, userId]);
+      await client.query(depositQueries.createWallet, [userId, amount,track_id]);
     }
 
     await client.query("COMMIT");
 
     return res.status(200).json({
       statusCode: 200,
-      message: "Deposit Successfully",
-      data: null,
+      message: "Deposit confirmed successfully",
+      data: getResponse.data,
     });
   } catch (error) {
     await client.query("ROLLBACK");
