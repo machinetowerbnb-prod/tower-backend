@@ -197,6 +197,7 @@ export const adminQueries = {
     FROM admin.master
     LIMIT 1;
   `,
+  getMaster:`SELECT * FROM admin.master LIMIT 1`,
   updateMasterData: (columns) => {
     const setClauses = Object.keys(columns)
       .map((key, index) => `"${key}" = $${index + 1}`)

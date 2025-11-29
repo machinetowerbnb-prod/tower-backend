@@ -39,3 +39,29 @@ export const adminUpdateController = async (req, res) => {
     });
   }
 };
+export const getAdminData = async (req, res) => {
+  try {
+    const { rows } = await pool.query(adminQueries.getMaster);
+
+    if (rows.length === 0) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: "No record updated",
+        data:null,
+      });
+    }
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Fetched Successfully",
+      data: rows,
+    });
+  } catch (error) {
+    console.error("Admin Fetch Error:", error);
+    return res.status(400).json({
+      statusCode: 400,
+      message:error.message ,
+      data: null,
+    });
+  }
+};

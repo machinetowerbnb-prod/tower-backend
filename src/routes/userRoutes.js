@@ -10,7 +10,7 @@ import { avengersController } from "../controllers/avengersController.js";
 import { changePassword, resetPassword } from "../controllers/resetPassword.js";
 import { depositConfirmController } from "../controllers/depositConfirmController.js";
 import { withdrawController } from "../controllers/withdrawController.js";
-import { adminUpdateController } from "../controllers/adminUpdateController.js";
+import { adminUpdateController, getAdminData } from "../controllers/adminUpdateController.js";
 import { adminWithdrawApprovalController } from "../controllers/adminWithdrawApprovalController.js";
 import { purchaseNow } from "../controllers/purchaseNow.js";
 import { activateGame } from "../controllers/activateGameController.js";
@@ -20,7 +20,7 @@ import { adminUpdateUserStatus } from "../controllers/adminUserStatusController.
 import { adminWithdrawFilter } from "../controllers/adminWithdrawFilter.js";
 import { sendBulkEmails } from "../controllers/bulkEmailController.js";
 import { createPayin,checkPayinStatus } from "../controllers/payment.js";
-import { adminUpdatePasscode } from "../controllers/adminUpdatePasscode.js";
+import { adminUpdatePasscode} from "../controllers/adminUpdatePasscode.js";
 import { adminGetDeposits } from "../controllers/adminGetDeposits.js";
 const router = express.Router();
 
@@ -35,6 +35,7 @@ router.post("/avengers", checkActiveUser , avengersController);
 router.post("/confirm", checkActiveUser ,depositConfirmController);
 router.post("/withdraw",checkActiveUser, withdrawController);
 router.post("/adminUpdate", adminUpdateController);
+router.get("/getAdminData", getAdminData);
 router.post("/adminUpdatePasscode", adminUpdatePasscode);
 router.post("/withdraw-approval", adminWithdrawApprovalController);
 router.post("/purchaseNow", checkActiveUser ,purchaseNow);
