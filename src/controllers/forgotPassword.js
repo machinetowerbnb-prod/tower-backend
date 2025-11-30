@@ -39,7 +39,7 @@ export const forgotPassword = async (req, res) => {
     await pool.query(userQueries.insertOtp, [email, otp, expiresAt]);
 
     // 6️⃣ Generate reset link (with otp as query param)
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?email=${email}&otp=${otp}`;
+    const resetLink = `${process.env.FRONTEND_URL}/change-password?email=${email}&otp=${otp}`;
 
     // 7️⃣ Compose clean email HTML
  const html = `
@@ -80,8 +80,12 @@ export const forgotPassword = async (req, res) => {
             We received a request to reset your password.  
             To proceed, please click the button below:
           </p>
+          <p style="font-size:14px; color:#666; line-height:1.6;">
+            For your protection, this link will expire in <b>10 minutes</b>.  
+            If you did not request a password reset, please ignore this email.
+          </p>
 
-          <!-- Reset Button -->
+                   <!-- Reset Button -->
           <div style="text-align:center; margin:35px 0;">
             <a href="${resetLink}"
               style="
@@ -96,14 +100,7 @@ export const forgotPassword = async (req, res) => {
               Reset Password
             </a>
           </div>
-
-          <p style="font-size:14px; color:#666; line-height:1.6;">
-            For your protection, this link will expire in <b>10 minutes</b>.  
-            If you did not request a password reset, please ignore this email.
-          </p>
-
           <hr style="margin:30px 0; border:0; border-top:1px solid #eee;" />
-
           <!-- Footer -->
           <p style="text-align:center; font-size:14px; color:#888; margin:0;">
             Regards, <br/>

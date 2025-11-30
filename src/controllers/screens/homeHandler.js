@@ -31,8 +31,9 @@ export const handleHomeScreen = async (userId) => {
         totalDeposits: wallet.totalDeposits,
         totalEarnings: wallet.totalEarnings,
         refferalLink,
-        bannerLink: master.bannerLink,
-        refferalCode: user.refferalCode
+        telegramLinkOne: master.telegramLinkOne,
+        refferalCode: user.refferalCode,
+        telegramLinkTwo:master.telegramLinkTwo
       },
     };
   } catch (error) {

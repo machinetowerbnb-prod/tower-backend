@@ -61,21 +61,6 @@ export const emailVerify = async (email) => {
             We’re excited to have you join us. To complete your registration and activate your account, please verify your email address by clicking the button below:
           </p>
 
-          <!-- Verify Button -->
-          <a href="${verifyLink}" 
-         style="
-         display: inline-block;
-          padding: 14px 24px;
-         background-color: #007BFF;
-        color: #ffffff;
-         text-decoration: none;
-         border-radius: 8px;
-        font-size: 16px;
-        font-weight: bold;
-       text-align: center;
-          ">
-      Verify My Email
-       </a>
           <p style="font-size: 15px; color: #555; line-height: 1.7;">
             Once verified, you'll have full access to your account.  
             This helps us ensure your account belongs to you.
@@ -84,6 +69,21 @@ export const emailVerify = async (email) => {
           <p style="font-size: 15px; color: #555; line-height: 1.7;">
             If you didn't sign up, you can safely ignore this email or contact our Support team for assistance.
           </p>
+                    <!-- Verify Button -->
+        <div style="text-align:center; margin:35px 0;">
+            <a href="${verifyLink}"
+              style="
+                background:#007BFF;
+                color:#ffffff;
+                padding:12px 26px;
+                border-radius:8px;
+                text-decoration:none;
+                font-weight:600;
+                display:inline-block;
+              ">
+              Reset Password
+            </a>
+          </div>
 
           <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
 
