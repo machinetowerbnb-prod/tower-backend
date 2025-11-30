@@ -21,7 +21,7 @@ export const loginUser = async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(400).json({
         statusCode: 400,
-        message: "failed",
+        message: "User Not Found",
         data: null,
       });
     }
@@ -33,7 +33,7 @@ export const loginUser = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({
         statusCode: 400,
-        message: "failed",
+        message: "Invalid email or password",
         data: null,
       });
     }

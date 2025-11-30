@@ -235,7 +235,8 @@ export const avengersQueries = {
 
   getMasterDataForHome: `
     SELECT 
-      "bannerLink",
+      "telegramLinkOne",
+      "telegramLinkTwo",
       "gameLink"
     FROM admin.master
     LIMIT 1;
