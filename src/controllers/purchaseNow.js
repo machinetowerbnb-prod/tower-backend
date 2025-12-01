@@ -46,7 +46,7 @@ export const purchaseNow = async (req, res) => {
          SET "deposits" = "deposits" + $1,
              "userLevel" = $2,
              "purchaseAmount" = $1,
-             "isFreeMoney" = true
+             "isFreeMoney" = true,
          WHERE "userId" = $3`,
         [bonus, Level, userId]
       );
@@ -83,20 +83,24 @@ export const purchaseNow = async (req, res) => {
     }
 
     // 5️⃣ Check deposit eligibility
-    if (deposits < range.min || deposits > range.max) {
+    if (deposits < range.min) {
       return res.status(400).json({
         statusCode: 400,
-        message: `Deposit amount for ${Level} should between ${range.min}–${range.max}`,
+        message: 'Insufficent Banlance!',
       });
     }
-
+    let purchaseAmount = deposits;
+     if (deposits > range.max) {
+      purchaseAmount = range.max
+    }
     // 6️⃣ Update wallet for level purchase
     await pool.query(
       `UPDATE users."wallets"
        SET "userLevel" = $1,
-           "purchaseAmount" = $2
+           "purchaseAmount" = $2,
+           "lastActivatedAt" = $4
        WHERE "userId" = $3`,
-      [Level, deposits, userId]
+      [Level, purchaseAmount, userId,null]
     );
 
     res.status(200).json({
@@ -105,7 +109,7 @@ export const purchaseNow = async (req, res) => {
       data: {
         userId,
         Level,
-        purchaseAmount: deposits,
+        purchaseAmount: purchaseAmount
       },
     });
   } catch (error) {

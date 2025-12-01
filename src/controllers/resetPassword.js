@@ -84,7 +84,10 @@ export const resetPassword = async (req, res) => {
     return res.status(200).json({
       statusCode: 200,
       message: "Password Changed Successfully",
-      data: null,
+      data: {
+        userId : userResult.rows[0].userId,
+        email:email
+      },
     });
   } catch (error) {
     console.error("Reset Password Error:", error);
