@@ -2,7 +2,7 @@ import {pool} from "../db.js";
 export const adminGetDeposits = async (req, res) => {
   try {
     const depositsResult = await pool.query(
-      `SELECT ud."userName", d.amount, d.status, d."transactionId", to_char(d."timestamp", 'YYYY-MM-DD HH12:MI AM') as time
+      `SELECT ud."userName", d.amount, d.status, d."transactionId", d.track_id, to_char(d."timestamp", 'YYYY-MM-DD HH12:MI AM') as time
        FROM users.deposits d
        JOIN users.userDetails ud ON d."userId" = ud."userId"
        ORDER BY d."timestamp" DESC`
@@ -13,6 +13,7 @@ export const adminGetDeposits = async (req, res) => {
       amount: parseFloat(row.amount),
       status: row.status,
       transactionId: row.transactionId,
+      track_id:row.track_id,
       time: row.time
     }));
 
