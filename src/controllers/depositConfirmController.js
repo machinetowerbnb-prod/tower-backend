@@ -41,14 +41,18 @@ export const depositConfirmController = async (req, res) => {
    const payload = {
        order_id: transactionId,
        amount: amount,
-       to_currency:transactionAccount?.name == "USDC Tether Tron (TRC20)" ? "USDT" : transactionAccount?.name,
+       to_currency:transactionAccount?.name == "USDC Tether Tron (TRC20)" ? "TRX" : transactionAccount?.name,
        network: transactionAccount?.accountId || "BSC",
      };
     const getResponse =  await createPayin(payload);
     if (!getResponse || !getResponse.success) {
-      console.error("💥 Payin Creation Failed:", getResponse?.error || "Something Went wrong");
+      // console.error("💥 Payin Creation Failed:", getResponse?.error || "Something Went wrong");
       await client.query("ROLLBACK");
-      throw new Error("Failed to create payin");
+      return res.status(406).json({
+      statusCode: 406,
+      message: "Payment Transcation Failed",
+      data: null,
+    })
     }
     const track_id = getResponse.data.track_id;
 // 2️⃣ Insert deposit record
