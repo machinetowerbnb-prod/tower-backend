@@ -45,7 +45,7 @@ export const gamesHandler = async (userId) => {
       Level1: { min: 60, max: 500 },
       Level2: { min: 501, max: 900 },
       Level3: { min: 901, max: 1500 },
-      Level4: { min: 1501, max: 3500 },
+      // Level4: { min: 1501},
     };
 
     // Determine eligible level
@@ -54,10 +54,9 @@ export const gamesHandler = async (userId) => {
     for (const level in levelRanges) {
       const range = levelRanges[level];
 
-      if (deposits >= range.min && deposits <= range.max) {
+      if (deposits >= range.min) {
         // If user already has this level, do NOT show eligible level
         elegibleLevel = level;
-        break;
       }
     }
 

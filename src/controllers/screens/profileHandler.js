@@ -23,6 +23,11 @@ export const profileHandler = async (userId) => {
 const withdrawalResult = await pool.query(avengersQueries.getTotalWithdrawals, [userId]);
 const totalWithdrawals = withdrawalResult.rows[0]?.totalWithdrawals || 0;
 
+   // 4️⃣ Fetch master data
+    const masterResult = await pool.query(avengersQueries.getMasterDataForHome);
+    const master = masterResult.rows[0];
+    if (!master) throw new Error("Master data not found");
+
     // Final Response
     return {
       statusCode: 200,
@@ -37,6 +42,8 @@ const totalWithdrawals = withdrawalResult.rows[0]?.totalWithdrawals || 0;
         grandTotalCommission: wallet.grandTotalCommission,
         flexibleDeposite: wallet.totalDeposits,
         totalWithdrawals:totalWithdrawals|| 0,
+        telegramLinkTwo:master.telegramLinkTwo
+
       },
     };
 
