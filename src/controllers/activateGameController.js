@@ -1,5 +1,6 @@
 // src/controllers/activateGameController.js
 import { pool } from '../db.js';
+import { roundToTwoDecimals } from "../utils/math.js";
 export const activateGame = async (req, res) => {
   const { userId } = req.body;
   if (!userId)
@@ -52,8 +53,8 @@ export const activateGame = async (req, res) => {
       return res.status(400).json({ message: "Invalid userLevel" });
     }
 
-    const totalCommission = (purchaseAmount * levelRate) / 100;
-
+    const totalCommission = roundToTwoDecimals((purchaseAmount * levelRate) / 100);
+ 
     // 4️⃣ Fetch user → get referral chain
     const meRes = await client.query(
       `SELECT "refferedCode","email" FROM users.userDetails WHERE "userId" = $1`,
@@ -86,9 +87,9 @@ export const activateGame = async (req, res) => {
     const genBonuses = {};
 
     uplines.forEach(up => {
-      genBonuses[up.gen] = (totalCommission * genPercents[up.gen]) / 100;
+      genBonuses[up.gen] = roundToTwoDecimals((totalCommission * genPercents[up.gen]) / 100);
     });
-
+ 
     // User gets full base commission (only direct game earnings)
     const userShare = totalCommission;
 
@@ -98,9 +99,9 @@ export const activateGame = async (req, res) => {
     await client.query(
       `UPDATE users.wallets
        SET 
-         "earnings" = ROUND(COALESCE("earnings", 0) + $1::numeric, 1),
-         "totalCommission" = ROUND(COALESCE("totalCommission", 0) + $1::numeric, 1),
-         "userTodaysCommission" = ROUND($1::numeric, 1),
+         "earnings" = COALESCE("earnings", 0) + $1,
+         "totalCommission" = COALESCE("totalCommission", 0) + $1,
+         "userTodaysCommission" = $1,
          "lastActivatedAt" = $3
        WHERE "userId" = $2`,
       [userShare, userId, nowTimestamp]
@@ -122,8 +123,8 @@ export const activateGame = async (req, res) => {
       // Update wallet of upline
       const update = await client.query(
         `UPDATE users.wallets
-         SET "earnings" = ROUND(COALESCE("earnings", 0) + $1::numeric, 1),
-             "totalCommission" = ROUND(COALESCE("totalCommission", 0) + $1::numeric, 1)
+         SET "earnings" = COALESCE("earnings", 0) + $1,
+              "totalCommission" = COALESCE("totalCommission", 0) + $1
          WHERE "userId" = $2 RETURNING "userId"`,
         [bonus, up.userId]
       );

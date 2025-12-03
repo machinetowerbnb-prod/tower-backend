@@ -6,12 +6,12 @@ export function isValidEmail(email) {
 
 // ✅ Passcode must be exactly 4 digits
 export function isValidPasscode(passcode) {
-  const regex = /^\d{4}$/;
+  const regex = /^\d{6}$/;
   return regex.test(passcode);
 }
 
 // ✅ Password strength validation
 export function isStrongPassword(password) {
-  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+  const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
   return regex.test(password);
 }

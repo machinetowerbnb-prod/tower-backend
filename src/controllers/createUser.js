@@ -12,11 +12,11 @@ export const registerUser = async (req, res) => {
     return res.status(400).json({ message: "All required fields must be provided." });
   }
   if (!isValidEmail(email)) return res.status(400).json({ message: "Invalid email format." });
-  if (!isValidPasscode(passcode)) return res.status(400).json({ message: "Passcode must be exactly 4 digits." });
+  if (!isValidPasscode(passcode)) return res.status(400).json({ message: "Passcode must be exactly 6 digits." });
   if (!isStrongPassword(password)) {
     return res.status(400).json({
       message:
-        "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
+        "Password must be at least 8 characters long, include alphanumeric."
     });
   }
 

@@ -1,11 +1,13 @@
 import { pool } from '../db.js';
 import { walletQueries } from "../helpers/queries.js";
 import { v4 as uuidv4 } from "uuid";
+import { roundToTwoDecimals } from "../utils/math.js";
 
 export const withdrawController = async (req, res) => {
   const client = await pool.connect();
   try {
     const { userId, amount, passcode, withdrawAddress} = req.body;
+    const withdrawAmount = roundToTwoDecimals(amount);
 
     if (!userId || !amount || !passcode || !withdrawAddress) {
       return res.status(400).json({
@@ -55,7 +57,7 @@ export const withdrawController = async (req, res) => {
     const { earnings } = walletResult.rows[0];
 
     // 2️⃣ Validate balance
-    if (Number(earnings) < Number(amount)) {
+    if (Number(earnings) < withdrawAmount) {
       await client.query("ROLLBACK");
       return res.status(400).json({
         statusCode: 400,
@@ -65,7 +67,7 @@ export const withdrawController = async (req, res) => {
     }
 
     // 3️⃣ Deduct from wallet
-    const remainingBalance = Number(earnings) - Number(amount);
+    const remainingBalance = roundToTwoDecimals(Number(earnings) - withdrawAmount);
     await client.query(walletQueries.updateWalletEarnings, [remainingBalance, userId]);
 
     await client.query(
@@ -78,7 +80,7 @@ export const withdrawController = async (req, res) => {
     // 4️⃣ Insert withdrawal record
     const withdrawId = uuidv4();
 
-    await client.query(walletQueries.insertWithdrawal, [userId, amount, withdrawId,withdrawAddress]);
+    await client.query(walletQueries.insertWithdrawal, [userId, withdrawAmount, withdrawId,withdrawAddress]);
 
     await client.query("COMMIT");
 

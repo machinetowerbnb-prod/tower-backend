@@ -3,6 +3,7 @@ import axios from "axios";
 import { pool } from '../db.js';
 import dotenv from "dotenv";
 import { depositQueries } from "../helpers/queries.js";
+import { roundToTwoDecimals } from "../utils/math.js";
 dotenv.config();
 
 // CONFIG
@@ -50,9 +51,10 @@ const upsertPayin = async (track_id, data) => {
 export const createPayin = async (depositData) => {
   try {
     const { amount, to_currency = "USDT", network = "TRON", order_id } = depositData;
+    const truncatedAmount = roundToTwoDecimals(amount);
     // REQUIRED fields from new OxaPay docs
     const payload = {
-      amount: amount.toString(),
+      amount: truncatedAmount.toString(),
       to_currency,
       network, // 🔥 REQUIRED
       order_id,
@@ -74,7 +76,7 @@ export const createPayin = async (depositData) => {
     await upsertPayin(data?.track_id, {
       address: data.address,
       network: data.network,
-      amount: amount,
+      amount: truncatedAmount,
       memo: data.memo,
       status: "pending",
       oxa_response: data

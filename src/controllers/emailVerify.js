@@ -81,7 +81,7 @@ export const emailVerify = async (email) => {
                 font-weight:600;
                 display:inline-block;
               ">
-              Reset Password
+              Verify Account
             </a>
           </div>
 

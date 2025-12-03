@@ -1,4 +1,5 @@
 import { pool } from '../db.js';
+import { roundToTwoDecimals } from "../utils/math.js";
 
 export const adminTransactionAvengers = async (req, res) => {
   const { screen, action, email, amount } = req.body;
@@ -25,7 +26,8 @@ export const adminTransactionAvengers = async (req, res) => {
   }
 
   const amt = Number(amount);
-  if (isNaN(amt) || amt <= 0) {
+  const truncatedAmt = roundToTwoDecimals(amt);
+  if (isNaN(truncatedAmt) || truncatedAmt <= 0) {
     return res.status(400).json({
       statusCode: 400,
       message: "Invalid amount value.",
@@ -64,22 +66,20 @@ export const adminTransactionAvengers = async (req, res) => {
     let currentBalance = Number(wallet[column] || 0);
 
     // 2️⃣ Debit validation
-    if (action === "Debit" && currentBalance < amt) {
+    if (action === "Debit" && currentBalance < truncatedAmt) {
       return res.status(400).json({
         statusCode: 400,
         message: "Amount is insufficient for Debit",
-      });
+        });
     }
 
     // 3️⃣ Compute new balance
-    const newBalance =
-      action === "Credit" ? currentBalance + amt : currentBalance - amt;
+    const rawNewBalance =
+      action === "Credit" ? currentBalance + truncatedAmt : currentBalance - truncatedAmt;
+    const newBalance = roundToTwoDecimals(rawNewBalance);
 
-    // 4️⃣ Update wallet (round earnings to 1 decimal if updating earnings column)
-    const updateQuery =
-      column === "earnings"
-        ? `UPDATE users.wallets SET "${column}" = ROUND($1::numeric, 1) WHERE "userId" = $2`
-        : `UPDATE users.wallets SET "${column}" = $1 WHERE "userId" = $2`;
+    // 4️⃣ Update wallet (newBalance is already truncated if the column is 'earnings' because it's a deposit or withdrawal amount)
+    const updateQuery = `UPDATE users.wallets SET "${column}" = $1 WHERE "userId" = $2`;
 
     await pool.query(updateQuery, [newBalance, userId]);
 
