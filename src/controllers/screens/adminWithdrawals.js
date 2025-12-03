@@ -18,7 +18,7 @@ export const adminWithdrawals = async () => {
     // 2️⃣ Apply charge and total calculation (2%)
     const data = result.rows.map((row) => {
       const amount = Number(row.amount || 0);
-      const chargePercent = 2;
+      const chargePercent = 8;
       const charge = Number(((amount * chargePercent) / 100).toFixed(2));
       const total = Number((amount - charge).toFixed(2));
 

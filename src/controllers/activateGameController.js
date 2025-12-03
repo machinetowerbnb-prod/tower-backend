@@ -152,6 +152,7 @@ export const activateGame = async (req, res) => {
         userShare,
         genBonuses,
         uplines,
+        userTodaysCommission:userShare,
         lastActivatedAt: nowTimestamp,
         nextActivation: "After 24 hours",
       },
