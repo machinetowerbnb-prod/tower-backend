@@ -137,7 +137,7 @@ export const userQueries = {
       u."email",
       u."created_at",
       u."refferalCode" AS "inviteCode",
-      COALESCE(w."earnings", 0) AS "balance"
+      COALESCE(w."deposits", 0) AS "balance"
     FROM users.userDetails u
     LEFT JOIN users.wallets w ON u."userId" = w."userId"
     WHERE u."userId" = ANY($1::bigint[]);
@@ -256,8 +256,10 @@ export const avengersQueries = {
   getTotalWithdrawals: `
   SELECT COALESCE(SUM(amount), 0) AS "totalWithdrawals"
   FROM users.withdrawals
-  WHERE "userId" = $1;
+  WHERE "userId" = $1
+  AND status = 'success';
 `,
+
 
 };
 
@@ -302,7 +304,7 @@ export const walletQueries = {
   // 2️⃣ Update wallet earnings after withdrawal
   updateWalletEarnings: `
     UPDATE users.wallets
-    SET earnings = ROUND($1::numeric, 1), updated_at = NOW()
+    SET earnings = $1, updated_at = NOW()
     WHERE "userId" = $2;
   `,
 
@@ -342,7 +344,7 @@ export const historyQueries = {
         commission AS amount,
         "createdAt" AS "timestamp"
       FROM users.rewards
-      WHERE "senderUserId" = $1
+      WHERE "receiverUserId" = $1
       ORDER BY "timestamp" DESC;
   `,
 };

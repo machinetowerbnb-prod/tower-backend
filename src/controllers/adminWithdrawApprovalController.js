@@ -1,4 +1,5 @@
 import { pool } from '../db.js';
+import { roundToTwoDecimals } from "../utils/math.js";
 
 export const adminWithdrawApprovalController = async (req, res) => {
   const client = await pool.connect();
@@ -56,9 +57,9 @@ export const adminWithdrawApprovalController = async (req, res) => {
       // ✅ Refund the amount to the user's wallet (earnings)
       await client.query(
         `UPDATE users.wallets
-         SET earnings = ROUND(COALESCE(earnings, 0) + $1::numeric, 1), updated_at = NOW()
+         SET earnings = COALESCE(earnings, 0) + $1, updated_at = NOW()
          WHERE "userId" = $2`,
-        [withdrawal.amount, userId]
+        [roundToTwoDecimals(withdrawal.amount), userId]
       );
 
       await client.query("COMMIT");

@@ -3,8 +3,10 @@ import { pool } from '../db.js';
 import { depositQueries } from "../helpers/queries.js";
 import { v4 as uuidv4 } from "uuid";
 import { createPayin } from './payment.js';
+import { roundToTwoDecimals } from "../utils/math.js";
 export const depositConfirmController = async (req, res) => {
   const { userId, amount, transactionAccount } = req.body;
+  const truncatedAmount = roundToTwoDecimals(amount);
 
   if (!userId || !amount || !transactionAccount) {
     return res.status(400).json({
@@ -40,7 +42,7 @@ export const depositConfirmController = async (req, res) => {
    //Integrate createPayin function here if needed 
    const payload = {
        order_id: transactionId,
-       amount: amount,
+       amount: truncatedAmount,
        to_currency:transactionAccount?.name == "USDC Tether Tron (TRC20)" ? "TRX" : transactionAccount?.name,
        network: transactionAccount?.accountId || "BSC",
      };
@@ -58,20 +60,20 @@ export const depositConfirmController = async (req, res) => {
 // 2️⃣ Insert deposit record
     await client.query(depositQueries.insertDeposit, [
       userId,
-      amount,
+      truncatedAmount,
       "pending",
       transactionId,
       transactionAccount,
       track_id
     ]);
     // 5️⃣ Create or update wallet
-    if (amount <= 0) {
-      throw new Error("Deposit amount must be greater than zero");  
+    if (truncatedAmount <= 0) {
+      throw new Error("Deposit amount must be greater than zero");
    }
 
     if (walletResult.rows.length === 0) {
       // No wallet — create one
-      await client.query(depositQueries.createWallet, [userId, amount,track_id]);
+      await client.query(depositQueries.createWallet, [userId, truncatedAmount,track_id]);
     }
 
     await client.query("COMMIT");

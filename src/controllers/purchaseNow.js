@@ -1,4 +1,5 @@
 import { pool } from "../db.js";
+import { roundToTwoDecimals } from "../utils/math.js";
 
 export const purchaseNow = async (req, res) => {
   const { userId, Level } = req.body;
@@ -39,14 +40,14 @@ export const purchaseNow = async (req, res) => {
         });
       }
 
-      const bonus = 8;
+      const bonus = roundToTwoDecimals(8);
 
       await pool.query(
         `UPDATE users.wallets
          SET "deposits" = "deposits" + $1,
              "userLevel" = $2,
              "purchaseAmount" = $1,
-             "isFreeMoney" = true,
+             "isFreeMoney" = true
          WHERE "userId" = $3`,
         [bonus, Level, userId]
       );
@@ -89,9 +90,9 @@ export const purchaseNow = async (req, res) => {
         message: 'Insufficent Banlance!',
       });
     }
-    let purchaseAmount = deposits;
+    let purchaseAmount = roundToTwoDecimals(deposits);
      if (deposits > range.max) {
-      purchaseAmount = range.max
+      purchaseAmount = roundToTwoDecimals(range.max);
     }
     // 6️⃣ Update wallet for level purchase
     await pool.query(
