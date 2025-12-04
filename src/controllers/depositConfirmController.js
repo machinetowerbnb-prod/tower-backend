@@ -43,7 +43,7 @@ export const depositConfirmController = async (req, res) => {
    const payload = {
        order_id: transactionId,
        amount: truncatedAmount,
-       to_currency:transactionAccount?.name == "USDT-TRC20" ? "TRX" : transactionAccount?.name == "USDT-BEP20" ? 'USDT' : transactionAccount?.name,
+       to_currency:transactionAccount?.name == "USDT-TRC20" ? "USDT" : transactionAccount?.name == "USDT-BEP20" ? 'USDT' : transactionAccount?.name,
        network: transactionAccount?.accountId || "BSC",
      };
     const getResponse =  await createPayin(payload);
