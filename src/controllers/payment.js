@@ -149,7 +149,11 @@ export const checkPayinStatus = async (req, res) => {
       `SELECT * FROM users.payments WHERE track_id=$1`,
       [track_id]
     );
-
+    const getUserId = await client.query(
+      `SELECT * FROM users.deposits WHERE track_id=$1`,
+      [track_id]
+    );
+    const UserId = getUserId.rows[0].userId;
     if (payinRes.rows.length === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ success: false, message: "Payin not found" });
@@ -161,7 +165,7 @@ export const checkPayinStatus = async (req, res) => {
     // If already completed → avoid DB hits
     if (record.status === "paid") {
       await client.query("ROLLBACK");
-      return res.json({ success: true, status: "paid", record });
+      return res.json({ success: true, status: "paid", data : record.oxa_response });
     }
 
     // 2️⃣ Fetch live status from OxaPay
@@ -189,16 +193,24 @@ export const checkPayinStatus = async (req, res) => {
 
     // 5️⃣ If paid → Credit wallet ONLY ONCE (duplicate-proof logic)
     if (finalStatus === "paid") {
-      const result = await client.query(
+      await client.query(
         `
-        UPDATE users.wallets
-        SET deposits = deposits + $1,
-            status = 'paid'
-        WHERE track_id = $2
+        UPDATE users.deposits
+        SET status = 'success'
+        WHERE track_id = $1
           AND status != 'paid'
         RETURNING *;
         `,
-        [amount, track_id]
+        [track_id]
+      );
+      const result = await client.query(
+        `
+        UPDATE users.wallets
+        SET deposits = deposits + $1
+        WHERE "userId" = $2
+        RETURNING *;
+        `,
+        [amount, UserId]
       );
 
       // If 0 rows updated → deposit already activated earlier
