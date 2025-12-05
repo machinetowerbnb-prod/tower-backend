@@ -1,6 +1,6 @@
 import { pool } from "../db.js";
+import { userQueries } from "../helpers/queries.js";
 import { roundToTwoDecimals } from "../utils/math.js";
-
 export const purchaseNow = async (req, res) => {
   const { userId, Level } = req.body;
 
@@ -51,6 +51,14 @@ export const purchaseNow = async (req, res) => {
          WHERE "userId" = $3`,
         [bonus, Level, userId]
       );
+      const userResult = await pool.query(userQueries.getUserById, [userId]);
+      const userEmail = userResult.rows[0].email;
+      await pool.query(
+      `INSERT INTO users.rewards
+       ("receiverUserId","receiverEmail","senderUserId","commission","senderEmail")
+       VALUES ($1,$2,$3,$4,$5)`,
+      [userId, userEmail, userId, bonus, userEmail]
+     );
 
       return res.status(200).json({
         statusCode: 200,

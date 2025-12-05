@@ -27,7 +27,8 @@ export const registerUser = async (req, res) => {
 
     // 1. Check if user exists
     const existingUser = await client.query(userQueries.checkUserExists, [email]);
-    if (existingUser.rows.length > 0) {
+    const isEmailVerify = existingUser?.rows[0]?.isVerified
+    if (existingUser.rows.length > 0 && isEmailVerify) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: "User already exists." });
     }
@@ -40,8 +41,13 @@ export const registerUser = async (req, res) => {
     const refferalCode = generateReferralCode();
 
     // 4. Insert new user
-    const values = [userId, userName, email, hashedPassword, refferedCode || null, passcode, refferalCode];
+    if(!isEmailVerify){
+      const values = [userName,hashedPassword, refferedCode || null, passcode, refferalCode,email];
+    const insertRes = await client.query(userQueries.updateExistingUser, values);
+    }else{
+     const values = [userId, userName, email, hashedPassword, refferedCode || null, passcode, refferalCode];
     const insertRes = await client.query(userQueries.insertUser, values);
+    }
     // get inserted user if needed: insertRes.rows[0]
 
     // 5. If referral code provided, walk up to 3 generations

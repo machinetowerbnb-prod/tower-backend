@@ -12,87 +12,88 @@ export const adminTransactionAvengers = async (req, res) => {
   }
 
   if (!["Deposit", "Withdraw"].includes(screen)) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: "Invalid screen type. Must be Deposit or Withdraw.",
-    });
+    return res.status(400).json({ statusCode: 400, message: "Invalid screen type." });
   }
-
   if (!["Credit", "Debit"].includes(action)) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: "Invalid action. Must be Credit or Debit.",
-    });
+    return res.status(400).json({ statusCode: 400, message: "Invalid action type." });
   }
 
-  const amt = Number(amount);
-  const truncatedAmt = roundToTwoDecimals(amt);
+  const truncatedAmt = roundToTwoDecimals(Number(amount));
   if (isNaN(truncatedAmt) || truncatedAmt <= 0) {
-    return res.status(400).json({
-      statusCode: 400,
-      message: "Invalid amount value.",
-    });
+    return res.status(400).json({ statusCode: 400, message: "Invalid amount value." });
   }
 
   try {
-    // 1️⃣ Check if wallet exists for the user
-    const userRes = await pool.query(
-      `SELECT "userId" FROM users.userDetails WHERE "email" = $1`,
-      [email]
-    );
+    // 1️⃣ Fetch user + wallet
+    const userWallet = await pool.query(`
+      SELECT wd."userId", w.deposits, w.earnings
+      FROM users.userDetails wd
+      JOIN users.wallets w ON wd."userId" = w."userId"
+      WHERE wd."email" = $1
+    `, [email]);
 
-    if (userRes.rows.length === 0) {
-      return res.status(404).json({
-        statusCode: 404,
-        message: "User not found.",
-      });
+    if (userWallet.rows.length === 0) {
+      return res.status(404).json({ statusCode: 404, message: "User or wallet not found." });
     }
 
-    const userId = userRes.rows[0].userId;
-    const walletRes = await pool.query(
-      `SELECT * FROM users.wallets WHERE "userId" = $1`,
-      [userId]
-    );
+    const user = userWallet.rows[0];
+    const column = screen === "Deposit" ? "deposits" : "earnings";
 
-    if (walletRes.rows.length === 0) {
-      return res.status(404).json({
-        statusCode: 404,
-        message: "Wallet not found for this user.",
-      });
+    // 2️⃣ Atomic Wallet Update
+    let updateSql = "";
+    let params = [];
+
+    if (action === "Credit") {
+      updateSql = `UPDATE users.wallets 
+                   SET "${column}" = "${column}" + $1 
+                   WHERE "userId" = $2 RETURNING *`;
+      params = [truncatedAmt, user.userId];
+    } else {
+      updateSql = `UPDATE users.wallets
+                   SET "${column}" = "${column}" - $1
+                   WHERE "userId" = $2 AND "${column}" >= $1
+                   RETURNING *`;
+      params = [truncatedAmt, user.userId];
     }
 
-    const wallet = walletRes.rows[0];
-    let column = screen === "Deposit" ? "deposits" : "earnings";
-    let currentBalance = Number(wallet[column] || 0);
+    const updateRes = await pool.query(updateSql, params);
 
-    // 2️⃣ Debit validation
-    if (action === "Debit" && currentBalance < truncatedAmt) {
+    if (updateRes.rows.length === 0) {
       return res.status(400).json({
         statusCode: 400,
         message: "Amount is insufficient for Debit",
-        });
+      });
     }
 
-    // 3️⃣ Compute new balance
-    const rawNewBalance =
-      action === "Credit" ? currentBalance + truncatedAmt : currentBalance - truncatedAmt;
-    const newBalance = roundToTwoDecimals(rawNewBalance);
+    // 3️⃣ Insert Reward record for admin activity
+    // await pool.query(
+    //   `INSERT INTO users.rewards 
+    //   ("adminUserId", "adminEmail", "userId", "transactionType", "screen", "amount", "created_at")
+    //   VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+    //   [
+    //     "1234567890",            // fixed admin userId
+    //     "admin@gmail.com",       // fixed admin email
+    //     user.userId,             // affected user
+    //     action,                  // Credit / Debit
+    //     screen,                  // Deposit / Withdraw
+    //     truncatedAmt
+    //   ]
+    // );
 
-    // 4️⃣ Update wallet (newBalance is already truncated if the column is 'earnings' because it's a deposit or withdrawal amount)
-    const updateQuery = `UPDATE users.wallets SET "${column}" = $1 WHERE "userId" = $2`;
-
-    await pool.query(updateQuery, [newBalance, userId]);
+    await pool.query(
+          `INSERT INTO users.rewards
+           ("receiverUserId","receiverEmail","senderUserId","commission","senderEmail")
+           VALUES ($1,$2,$3,$4,$5)`,
+          [user.userId, email, "1234567890", truncatedAmt, "admin@gmail.com"]
+        )
 
     return res.status(200).json({
       statusCode: 200,
-      message: `${action} Successfully`,
-      data: null,
+      message: `${action} Successfully & reward logged.`,
     });
+
   } catch (error) {
     console.error("Admin Transaction API Error:", error);
-    res.status(500).json({
-      statusCode: 500,
-      message: "Internal Server Error",
-    });
+    res.status(500).json({ statusCode: 500, message: "Internal Server Error" });
   }
 };
