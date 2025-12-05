@@ -187,7 +187,7 @@ getUsersDetailsByIds: `
     u."userId",
     u.email,
     u."created_at",
-    COALESCE(w."earnings", 0) AS balance,
+    COALESCE(w."purchaseAmount", 0) AS balance,
 
     -- direct referrals (firstGen)
     (
@@ -327,12 +327,14 @@ export const depositQueries = {
   `,
 
   updateWalletDeposit: `
-    UPDATE users.wallets 
-    SET deposits = deposits + $1
+  UPDATE users.wallets
+  SET 
+    deposits = deposits + $1,
     status = $3
-    WHERE track_id = $2
-    RETURNING *;
-  `,
+  WHERE "track_id" = $2
+  RETURNING *;
+`,
+
 };
 
 export const walletQueries = {
