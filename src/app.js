@@ -8,6 +8,8 @@ const app = express();
 const raw = process.env.FRONTEND_URL || '';
 const whitelist = raw.split(',').map(s => s.trim()).filter(Boolean);
 
+whitelist.push('http://localhost:4200');
+
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
