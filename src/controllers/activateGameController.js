@@ -83,7 +83,7 @@ export const activateGame = async (req, res) => {
     }
 
     // 5️⃣ Gen commissions
-    const genPercents = { 1: 5, 2: 3, 3: 2 };
+    const genPercents = { 1: 5, 2: 4, 3: 2 };
     const genBonuses = {};
 
     uplines.forEach(up => {
