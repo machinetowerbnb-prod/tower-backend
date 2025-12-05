@@ -12,6 +12,17 @@ export const userQueries = {
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *;
   `,
+  //update new user 
+  updateExistingUser :`UPDATE users.userDetails
+SET 
+  "userName" = $1,
+  "password" = $2,
+  "refferedCode" = $3,
+  "passcode" = $4,
+  "refferalCode" = $5
+WHERE "email" = $6
+RETURNING *;
+`,
 
   //  Optional: Update password
   updatePassword: `
@@ -144,11 +155,10 @@ export const userQueries = {
   `,
 
   getUserGenerations: `
-    SELECT "firstGen", "secondGen", "thirdGen","userName"
+    SELECT "firstGen", "secondGen", "thirdGen", "userName"
     FROM users.userDetails
     WHERE "userId" = $1;
   `,
-
   getUsersByIds: `
     SELECT "userId", "email", "isDeposited"
     FROM users.userDetails
@@ -156,7 +166,7 @@ export const userQueries = {
   `,
 
   getWalletsByUserIds: `
-    SELECT "userId", "deposits", "totalCommission" ,"earnings"
+    SELECT "userId", "deposits", "totalCommission", "earnings", "isFreeMoney"
     FROM users.wallets
     WHERE "userId" = ANY($1::bigint[]);
   `,
@@ -172,16 +182,11 @@ export const userQueries = {
   FROM users.wallets
   WHERE "userId" = $1;
 `,
-getUsersDetailsByIds: `
-    SELECT 
-      "userId",
-      "userName",
-      "email",
-      "refferalCode",
-      "isActiveUser"
+ getUsersDetailsByIds: `
+    SELECT "userId","userName","email","refferalCode","isActiveUser"
     FROM users.userDetails
     WHERE "userId" = ANY($1::bigint[]);
-  `, 
+  `,
   getMemberDetailsWithGenCounts: `
   SELECT 
     u."userId",
@@ -384,14 +389,16 @@ export const historyQueries = {
       ORDER BY "timestamp" DESC;
   `,
   getRewardsByUser: `
-    SELECT 
-        'reward' AS type,
-        commission AS amount,
-        "createdAt" AS "timestamp"
-      FROM users.rewards
-      WHERE "receiverUserId" = $1
-      ORDER BY "timestamp" DESC;
-  `,
+  SELECT 
+    'reward' AS type,
+    commission AS amount,
+    "createdAt" AS "timestamp",
+    "senderEmail"
+  FROM users.rewards
+  WHERE "receiverUserId" = $1
+  ORDER BY "timestamp" DESC;
+`,
+
 };
 export const positionQueries = {
   getAllPositions: `
