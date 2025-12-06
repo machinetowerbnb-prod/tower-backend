@@ -53,10 +53,8 @@ export const handleMemberScreen = async (userId, screen) => {
 
     // 5️⃣ Map rows — pick the correct count depending on screen
     const members = memberRes.rows.map((m) => {
-      let count = 0;
-      if (screen === "genOne") count = Number(m.gen1_count || 0);
-      else if (screen === "genTwo") count = Number(m.gen2_count || 0);
-      else if (screen === "genThree") count = Number(m.gen3_count || 0);
+      const count = Number(m.invite_count || 0);
+
 
       return {
         email: m.email,
