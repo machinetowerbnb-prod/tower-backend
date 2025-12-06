@@ -42,7 +42,8 @@ const totalWithdrawals = withdrawalResult.rows[0]?.totalWithdrawals || 0;
         grandTotalCommission: wallet.grandTotalCommission,
         flexibleDeposite: wallet.totalDeposits,
         totalWithdrawals:totalWithdrawals|| 0,
-        telegramLinkTwo:master.telegramLinkTwo
+        telegramLinkTwo:master.telegramLinkTwo,
+        telegramLinkThree:master.telegramLinkThree
 
       },
     };

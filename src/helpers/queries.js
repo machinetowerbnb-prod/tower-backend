@@ -264,6 +264,7 @@ export const avengersQueries = {
     SELECT 
       "telegramLinkOne",
       "telegramLinkTwo",
+      "telegramLinkThree",
       "gameLink"
     FROM admin.master
     LIMIT 1;
