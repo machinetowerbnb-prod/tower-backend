@@ -45,7 +45,7 @@ export const gamesHandler = async (userId) => {
       Level1: { min: 60, max: 500 },
       Level2: { min: 501, max: 900 },
       Level3: { min: 901, max: 1500 },
-      // Level4: { min: 1501},
+      Level4: { min: 1501}
     };
 
     // Determine eligible level
@@ -59,6 +59,11 @@ export const gamesHandler = async (userId) => {
         elegibleLevel = level;
       }
     }
+    const getData = await pool.query(
+      `SELECT "isGameEnabled" FROM admin.master LIMIT 1`
+    );
+
+    const isGameEnabled = getData.rows[0]?.isGameEnabled;
 
     return {
       statusCode: 200,
@@ -68,6 +73,7 @@ export const gamesHandler = async (userId) => {
         currectLevel,
         elegibleLevel,
         activationTime,
+        isGameEnabled
       },
     };
 
