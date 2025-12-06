@@ -22,6 +22,7 @@ import { sendBulkEmails } from "../controllers/bulkEmailController.js";
 import { createPayin,checkPayinStatus } from "../controllers/payment.js";
 import { adminUpdatePasscode} from "../controllers/adminUpdatePasscode.js";
 import { adminGetDeposits } from "../controllers/adminGetDeposits.js";
+import { adminDeleteUser } from "../controllers/adminDeletUser.js";
 const router = express.Router();
 
 router.post("/register", registerUser);
@@ -50,5 +51,6 @@ router.post("/create-payin", createPayin);
 router.get("/adminGetDeposits", adminGetDeposits);
 // router.post("/webhook", payinWebhook);
 router.get("/payin-status/:track_id", checkPayinStatus);
+router.delete("/delete-user",adminDeleteUser)
 
 export default router;
