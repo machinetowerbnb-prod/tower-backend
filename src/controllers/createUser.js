@@ -41,7 +41,7 @@ export const registerUser = async (req, res) => {
     const refferalCode = generateReferralCode();
 
     // 4. Insert new user
-    if(!isEmailVerify){
+    if(!isEmailVerify && isEmailVerify !== undefined){
       const values = [userName,hashedPassword, refferedCode || null, passcode, refferalCode,email];
     const insertRes = await client.query(userQueries.updateExistingUser, values);
     }else{
