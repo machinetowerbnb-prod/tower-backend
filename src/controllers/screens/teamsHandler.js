@@ -46,7 +46,7 @@ export const getTeamsData = async (userId, isAdmin) => {
     // 🔥 Rule updates start here
 
     // ➤ totalDownlines = only FIRST GENERATION users who deposited
-     const totalDownlines = (firstGen || []).length;;
+     const totalDownlines = Number((firstGen || []).length) + Number((secondGen || []).length) + Number((thirdGen || []).length)
 
     // ➤ Sum commissions safely
     const totalPromationComission = wallets.reduce(

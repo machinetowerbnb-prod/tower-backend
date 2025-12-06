@@ -187,48 +187,27 @@ RETURNING *;
     FROM users.userDetails
     WHERE "userId" = ANY($1::bigint[]);
   `,
-  getMemberDetailsWithGenCounts: `
+ getMemberDetailsWithGenCounts: `
   SELECT 
     u."userId",
     u.email,
     u."created_at",
     COALESCE(w."purchaseAmount", 0) AS balance,
 
-    -- direct referrals (firstGen)
+    -- direct invited count of this user
     (
       SELECT COUNT(*) 
       FROM users.userDetails x
       WHERE x."refferedCode" = u."refferalCode"
-    ) AS gen1_count,
-
-    -- second generation: people referred by u's firstGen
-    (
-      SELECT COUNT(*)
-      FROM users.userDetails x
-      WHERE x."refferedCode" IN (
-        SELECT f."refferalCode" FROM users.userDetails f
-        WHERE f."refferedCode" = u."refferalCode"
-      )
-    ) AS gen2_count,
-
-    -- third generation: people referred by u's secondGen
-    (
-      SELECT COUNT(*)
-      FROM users.userDetails x
-      WHERE x."refferedCode" IN (
-        SELECT s."refferalCode" FROM users.userDetails s
-        WHERE s."refferedCode" IN (
-          SELECT f."refferalCode" FROM users.userDetails f
-          WHERE f."refferedCode" = u."refferalCode"
-        )
-      )
-    ) AS gen3_count
+    ) AS invite_count
 
   FROM users.userDetails u
   LEFT JOIN users.wallets w ON u."userId" = w."userId"
   WHERE u."userId" = ANY($1::bigint[])
   ORDER BY u."created_at" DESC;
 `,
+
+
 
 };
 
