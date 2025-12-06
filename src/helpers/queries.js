@@ -192,7 +192,7 @@ RETURNING *;
     u."userId",
     u.email,
     u."created_at",
-    COALESCE(w."purchaseAmount", 0) AS balance,
+    COALESCE(w."deposits", 0) AS balance,
 
     -- direct invited count of this user
     (

@@ -12,7 +12,7 @@ export const activateGame = async (req, res) => {
 
     // 1️⃣ Fetch wallet
     const walletRes = await client.query(
-      `SELECT "purchaseAmount","userLevel","lastActivatedAt","userTodaysCommission"
+      `SELECT "deposits","userLevel","lastActivatedAt","userTodaysCommission"
        FROM users.wallets WHERE "userId" = $1 FOR UPDATE`,
       [userId]
     );
@@ -23,7 +23,7 @@ export const activateGame = async (req, res) => {
     }
 
     const wallet = walletRes.rows[0];
-    const purchaseAmount = Number(wallet.purchaseAmount || 0);
+    const purchaseAmount = Number(wallet.deposits || 0);
     const userLevel = wallet.userLevel;
     const lastActivatedAt = wallet.lastActivatedAt ? Number(wallet.lastActivatedAt) : null;
 
