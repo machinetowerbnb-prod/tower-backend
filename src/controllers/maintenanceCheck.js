@@ -1,7 +1,7 @@
 import { pool } from '../db.js';
 import { adminQueries } from "../helpers/queries.js";
 
-export const checkMaintenance = async (req, res) => {
+export const checkMaintenance = async (req, res, next) => {
   try {
     const result = await pool.query(
       `SELECT "isUnderMaintainance" FROM admin.master LIMIT 1`
