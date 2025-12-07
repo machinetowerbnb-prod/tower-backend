@@ -181,9 +181,12 @@ export const checkPayinStatus = async (req, res) => {
 
     // 3️⃣ Resolve final status
     let finalStatus = oxapay.status;
-
+    let finalAmount;
     const confirmedTx = oxapay.txs?.find(tx => tx.status === "confirmed");
-    if (confirmedTx) finalStatus = "paid";
+    if (confirmedTx){
+      finalStatus = "paid";
+      finalAmount = roundToTwoDecimals(oxapay.txs?.[0]?.amount)
+    }
 
     // 4️⃣ Update payments table always — but does not credit wallet
     await upsertPayin(track_id, {
@@ -210,7 +213,7 @@ export const checkPayinStatus = async (req, res) => {
         WHERE "userId" = $2
         RETURNING *;
         `,
-        [amount, UserId]
+        [finalAmount, UserId]
       );
 
       // If 0 rows updated → deposit already activated earlier
