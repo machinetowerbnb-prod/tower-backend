@@ -18,3 +18,7 @@ export const roundToTwoDecimals = (value) => {
     // This performs correct mathematical rounding to two decimals.
     return Math.round(num * 100) / 100;
 };
+export function addReverseFee(receivedAmount, feePercent = 2) {
+  const original = receivedAmount / (1 - feePercent / 100);
+  return parseFloat(original.toFixed(2)); // removes trailing .00
+}
