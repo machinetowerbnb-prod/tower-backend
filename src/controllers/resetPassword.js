@@ -121,8 +121,7 @@ export const changePassword = async (req, res) => {
       });
     }
     // 4️⃣ Strong password validation
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
         statusCode: 400,
