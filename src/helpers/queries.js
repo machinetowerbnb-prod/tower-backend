@@ -8,18 +8,19 @@ export const userQueries = {
   // Insert new user
   insertUser: `
     INSERT INTO users.userDetails
-      ("userId", "userName", "email", "password", "refferedCode", "passcode", "refferalCode")
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ("userId", "userName", "email", "password", "refferedCode", "passcode", "refferalCode","isVerified")
+    VALUES ($1, $2, $3, $4, $5, $6, $7,true)
     RETURNING *;
   `,
   //update new user 
-  updateExistingUser :`UPDATE users.userDetails
+  updateExistingUser: `UPDATE users.userDetails
 SET 
   "userName" = $1,
   "password" = $2,
   "refferedCode" = $3,
   "passcode" = $4,
-  "refferalCode" = $5
+  "refferalCode" = $5,
+  "isVerified" = true
 WHERE "email" = $6
 RETURNING *;
 `,
@@ -37,7 +38,7 @@ RETURNING *;
     WHERE "userId" = $1
   `,
 
-    getUserByEmail: `
+  getUserByEmail: `
     SELECT "userId", "userName", email, password, "isActiveUser" , "isVerified"
     FROM users.userDetails
     WHERE email = $1
@@ -65,7 +66,7 @@ RETURNING *;
     SET "isVerified" = true
     WHERE email = $1;
   `,
-   updateUserPassword: `
+  updateUserPassword: `
     UPDATE users.userDetails
     SET password = $1
     WHERE email = $2
@@ -80,7 +81,7 @@ RETURNING *;
   `,
 
   // Generic jsonb append helper (we'll call one of these by index)
- appendFirstGen: `
+  appendFirstGen: `
     UPDATE users.userDetails
     SET "firstGen" = COALESCE(
       (
@@ -133,7 +134,7 @@ RETURNING *;
     )
     WHERE "userId" = $2;
   `,
-   getGenerationMembers: `
+  getGenerationMembers: `
     SELECT 
       "firstGen",
       "secondGen",
@@ -182,12 +183,12 @@ RETURNING *;
   FROM users.wallets
   WHERE "userId" = $1;
 `,
- getUsersDetailsByIds: `
+  getUsersDetailsByIds: `
     SELECT "userId","userName","email","refferalCode","isActiveUser"
     FROM users.userDetails
     WHERE "userId" = ANY($1::bigint[]);
   `,
- getMemberDetailsWithGenCounts: `
+  getMemberDetailsWithGenCounts: `
   SELECT 
     u."userId",
     u.email,
@@ -224,7 +225,7 @@ export const adminQueries = {
     FROM admin.master
     LIMIT 1;
   `,
-  getMaster:`SELECT * FROM admin.master LIMIT 1`,
+  getMaster: `SELECT * FROM admin.master LIMIT 1`,
   updateMasterData: (columns) => {
     const setClauses = Object.keys(columns)
       .map((key, index) => `"${key}" = $${index + 1}`)
@@ -269,12 +270,12 @@ export const avengersQueries = {
     FROM admin.master
     LIMIT 1;
   `,
-   getMasterWalletNetworks: `
+  getMasterWalletNetworks: `
     SELECT "walletNetworks"
     FROM admin.master
     LIMIT 1;
   `,
-   getTeamDailyCommission: `
+  getTeamDailyCommission: `
     SELECT 
       COALESCE(SUM(commission), 0) AS "teamDailyCommission"
     FROM users.rewards

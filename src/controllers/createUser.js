@@ -41,12 +41,12 @@ export const registerUser = async (req, res) => {
     const refferalCode = generateReferralCode();
 
     // 4. Insert new user
-    if(!isEmailVerify && isEmailVerify !== undefined){
-      const values = [userName,hashedPassword, refferedCode || null, passcode, refferalCode,email];
-    const insertRes = await client.query(userQueries.updateExistingUser, values);
-    }else{
-     const values = [userId, userName, email, hashedPassword, refferedCode || null, passcode, refferalCode];
-    const insertRes = await client.query(userQueries.insertUser, values);
+    if (!isEmailVerify && isEmailVerify !== undefined) {
+      const values = [userName, hashedPassword, refferedCode || null, passcode, refferalCode, email];
+      const insertRes = await client.query(userQueries.updateExistingUser, values);
+    } else {
+      const values = [userId, userName, email, hashedPassword, refferedCode || null, passcode, refferalCode];
+      const insertRes = await client.query(userQueries.insertUser, values);
     }
     // get inserted user if needed: insertRes.rows[0]
 
@@ -79,11 +79,11 @@ export const registerUser = async (req, res) => {
         currentReferralCode = refRow.refferedcode || null;
       }
     }
-    let emailSucess = await emailVerify(email);
-    if(emailSucess.statusCode !== 200){
-      await client.query('ROLLBACK');
-      return  res.status(500).json({ statusCode: 500, message: "Failed" });
-    }
+    // let emailSucess = await emailVerify(email);
+    // if(emailSucess.statusCode !== 200){
+    //   await client.query('ROLLBACK');
+    //   return  res.status(500).json({ statusCode: 500, message: "Failed" });
+    // }
 
     // Commit transaction
     await client.query('COMMIT');
