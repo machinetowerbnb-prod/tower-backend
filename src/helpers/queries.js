@@ -352,7 +352,8 @@ export const historyQueries = {
         amount,
         "timestamp",
         "transactionId" AS "transactionId",
-        status
+        status,
+        "isConverted"
       FROM users.deposits
       WHERE "userId" = $1
       ORDER BY "timestamp" DESC;
