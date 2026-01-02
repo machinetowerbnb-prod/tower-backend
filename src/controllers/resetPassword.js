@@ -61,15 +61,15 @@ export const resetPassword = async (req, res) => {
     }
 
     // 4️⃣ Strong password validation
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        statusCode: 400,
-        message:
-          "Password must be at least 8 characters long, include alphanumeric.",
-        data: null,
-      });
-    }
+    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    // if (!passwordRegex.test(password)) {
+    //   return res.status(400).json({
+    //     statusCode: 400,
+    //     message:
+    //       "Password must be at least 8 characters long, include alphanumeric.",
+    //     data: null,
+    //   });
+    // }
 
     // 5️⃣ Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -121,15 +121,15 @@ export const changePassword = async (req, res) => {
       });
     }
     // 4️⃣ Strong password validation
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        statusCode: 400,
-        message:
-          "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
-        data: null,
-      });
-    }
+    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
+    // if (!passwordRegex.test(password)) {
+    //   return res.status(400).json({
+    //     statusCode: 400,
+    //     message:
+    //       "Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
+    //     data: null,
+    //   });
+    // }
 
     // 5️⃣ Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);

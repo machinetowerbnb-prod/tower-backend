@@ -23,6 +23,7 @@ import { createPayin,checkPayinStatus } from "../controllers/payment.js";
 import { adminUpdatePasscode} from "../controllers/adminUpdatePasscode.js";
 import { adminGetDeposits } from "../controllers/adminGetDeposits.js";
 import { adminDeleteUser } from "../controllers/adminDeletUser.js";
+import { convertEarningsToDeposit } from "../controllers/convertEarningsToDeposit.js";
 const router = express.Router();
 
 router.post("/register",checkMaintenance, registerUser);
@@ -35,6 +36,7 @@ router.post("/reset-password",checkMaintenance,checkActiveUser, resetPassword);
 router.post("/avengers",checkMaintenance, checkActiveUser , avengersController);
 router.post("/confirm",checkMaintenance, checkActiveUser ,depositConfirmController);
 router.post("/withdraw",checkMaintenance,checkActiveUser, withdrawController);
+router.post("/convert-earnings", checkMaintenance, checkActiveUser, convertEarningsToDeposit);
 router.post("/adminUpdate", adminUpdateController);
 router.get("/getAdminData", getAdminData);
 router.post("/adminUpdatePasscode", adminUpdatePasscode);
