@@ -8,9 +8,17 @@ export const Dashboard = async () => {
     const totalDepositors = Number(totalDepositorsResult.rows[0].count) || 0;
 
     // 2️⃣ Total Amount — sum of all deposits from wallets
-    const totalAmountResult = await pool.query(
-      `SELECT COALESCE(SUM("deposits"), 0) AS total FROM users."wallets"`
-    );
+    const totalAmountResult = await pool.query(`
+  SELECT 
+    COALESCE(SUM(w."deposits"), 0) 
+    - COALESCE((
+        SELECT SUM(d."amount") 
+        FROM users.deposits d 
+        WHERE d."status" = 'paid'
+      ), 0) AS total
+  FROM users."wallets" w
+`);
+
     const totalAmount = Number(totalAmountResult.rows[0].total) || 0;
 
     // 3️⃣ Total Withdraw — sum of all withdrawals
