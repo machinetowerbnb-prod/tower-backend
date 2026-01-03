@@ -1,13 +1,23 @@
-import { pool } from '../db.js';
+import { pool } from "../db.js";
 import crypto from "crypto";
 
 export const convertEarningsToDeposit = async (req, res) => {
-  const { userId } = req.body;
+  const { userId, amount } = req.body;
 
-  if (!userId) {
+  if (!userId || amount === undefined) {
     return res.status(400).json({
       statusCode: 400,
-      message: "userId is required",
+      message: "userId and amount are required",
+      data: null,
+    });
+  }
+
+  const convertAmount = Number(amount);
+
+  if (isNaN(convertAmount) || convertAmount <= 0) {
+    return res.status(400).json({
+      statusCode: 400,
+      message: "Invalid amount",
       data: null,
     });
   }
@@ -29,37 +39,39 @@ export const convertEarningsToDeposit = async (req, res) => {
 
     const earnings = Number(walletRes.rows[0].earnings || 0);
 
-    // ❌ Nothing to convert
-    if (earnings <= 0) {
+    // ❌ Insufficient funds
+    if (convertAmount > earnings) {
       return res.status(400).json({
         statusCode: 400,
-        message: "No earnings available to convert",
+        message: "Insufficient earnings to convert",
         data: null,
       });
     }
 
-    // 2️⃣ Atomic wallet update (reset earnings + add to deposits)
+    // 2️⃣ Atomic wallet update (partial conversion)
     const walletUpdate = await pool.query(
       `
       UPDATE users.wallets
       SET 
-        "deposits" = "deposits" + $1,
-        "earnings" = 0
+        "earnings" = "earnings" - $1,
+        "deposits" = "deposits" + $1
       WHERE "userId" = $2
-        AND "earnings" = $1
-      RETURNING *;
+        AND "earnings" >= $1
+      RETURNING "earnings";
       `,
-      [earnings, userId]
+      [convertAmount, userId]
     );
 
-    // ❌ Prevent double conversion
+    // ❌ Race condition protection
     if (walletUpdate.rowCount === 0) {
       return res.status(409).json({
         statusCode: 409,
-        message: "Conversion already processed",
+        message: "Conversion failed due to concurrent update",
         data: null,
       });
     }
+
+    const remainingEarnings = Number(walletUpdate.rows[0].earnings);
 
     // 3️⃣ Create deposit transaction
     const transactionId = `CNV-${crypto.randomBytes(6).toString("hex").toUpperCase()}`;
@@ -71,14 +83,15 @@ export const convertEarningsToDeposit = async (req, res) => {
       VALUES
         ($1, $2, $3, 'paid', true)
       `,
-      [userId, earnings, transactionId]
+      [userId, convertAmount, transactionId]
     );
 
     return res.status(200).json({
       statusCode: 200,
       message: "Earnings converted to deposit successfully",
       data: {
-        convertedAmount: earnings,
+        convertedAmount: convertAmount,
+        remainingEarnings,
       },
     });
 
