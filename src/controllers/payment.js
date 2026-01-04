@@ -230,6 +230,18 @@ export const checkPayinStatus = async (req, res) => {
         [finalAmount, UserId]
       );
 
+      const userCheck = await client.query(
+      `SELECT "isDeposited" FROM users.userDetails WHERE "userId" = $1`,
+      [UserId]
+    );
+
+      if (userCheck.rows.length && !userCheck.rows[0].isDeposited) {
+      await client.query(
+        `UPDATE users.userDetails SET "isDeposited" = false WHERE "userId" = $1`,
+        [UserId]
+      );
+    }
+
       // If 0 rows updated → deposit already activated earlier
       if (result.rowCount === 0) {
         await client.query("COMMIT");
