@@ -27,18 +27,18 @@ export const depositConfirmController = async (req, res) => {
     const transactionId = `TXN-${uuidv4().slice(0, 8).toUpperCase()}`;
     // 3️⃣ Check if wallet exists
     const walletResult = await client.query(depositQueries.getWalletByUserId, [userId]);
-    const userCheck = await client.query(
-      `SELECT "isDeposited" FROM users.userDetails WHERE "userId" = $1`,
-      [userId]
-    );
+    // const userCheck = await client.query(
+    //   `SELECT "isDeposited" FROM users.userDetails WHERE "userId" = $1`,
+    //   [userId]
+    // );
 
     // 4️⃣ If false, update to true
-    if (userCheck.rows.length && !userCheck.rows[0].isDeposited) {
-      await client.query(
-        `UPDATE users.userDetails SET "isDeposited" = true WHERE "userId" = $1`,
-        [userId]
-      );
-    }
+    // if (userCheck.rows.length && !userCheck.rows[0].isDeposited) {
+    //   await client.query(
+    //     `UPDATE users.userDetails SET "isDeposited" = false WHERE "userId" = $1`,
+    //     [userId]
+    //   );
+    // }
    //Integrate createPayin function here if needed 
    const payload = {
        order_id: transactionId,
