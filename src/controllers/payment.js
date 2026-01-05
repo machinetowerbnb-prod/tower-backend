@@ -172,14 +172,14 @@ export const checkPayinStatus = async (req, res) => {
     const amount = Number(record.amount);
 
     // If already completed → avoid DB hits
-    if (record.status === "paid") {
-      await client.query("ROLLBACK");
-      return res.json({
-        success: true,
-        status: "paid",
-        data: record.oxa_response,
-      });
-    }
+    // if (record.status === "paid") {
+    //   await client.query("ROLLBACK");
+    //   return res.json({
+    //     success: true,
+    //     status: "paid",
+    //     data: record.oxa_response,
+    //   });
+    // } // TEMPORARY ONCE HARI COMES HE WILL ENABLE IT AGAIN
 
     // 2️⃣ Fetch live status from OxaPay
     const oxRes = await axios.get(`${OXAPAY_API_BASE}/${track_id}`, {
@@ -237,7 +237,7 @@ export const checkPayinStatus = async (req, res) => {
 
       if (userCheck.rows.length && !userCheck.rows[0].isDeposited) {
       await client.query(
-        `UPDATE users.userDetails SET "isDeposited" = false WHERE "userId" = $1`,
+        `UPDATE users.userDetails SET "isDeposited" = true WHERE "userId" = $1`,
         [UserId]
       );
     }
