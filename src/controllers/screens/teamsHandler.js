@@ -54,27 +54,12 @@ export const getTeamsData = async (userId, isAdmin) => {
       0
     );
 
-    // ➤ teamRecharge (ONLY deposited users, exclude free money + paid deposits)
-const teamRecharge = wallets.reduce((acc, w) => {
-  const user = genUsers.find(u => u.userId === w.userId);
-
-  // ❌ skip users who never deposited
-  if (!user || user.isDeposited !== true) return acc;
-
-  let amount = Number(w.deposits || 0);
-
-  // remove free claimed amount
-  if (w.isFreeMoney) amount -= 8;
-
-  // remove PAID deposits
-  const paidDepositSum = withdrawals
-    .filter(d => d.userId === w.userId && d.status === 'paid')
-    .reduce((s, d) => s + Number(d.amount || 0), 0);
-
-  amount -= paidDepositSum;
-
-  return acc + (amount > 0 ? amount : 0);
-}, 0);
+// ➤ teamRecharge (exclude free money)
+    const teamRecharge = wallets.reduce((acc, w) => {
+      let amount = Number(w.deposits || 0);
+      if (w.isFreeMoney) amount -= 8;        // remove free claimed amount
+      return acc + (amount > 0 ? amount : 0);
+    }, 0);
 
 
     // ➤ teamWithdrawals
