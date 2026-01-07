@@ -244,11 +244,21 @@ export const avengersQueries = {
       COALESCE(deposits, 0) AS "totalDeposits", 
       COALESCE(earnings, 0) AS "totalEarnings",
       COALESCE("userTodaysCommission", 0) AS "usersTodaysCommission",
-      COALESCE("totalCommission", 0) AS "grandTotalCommission"
+      COALESCE("totalCommission", 0) AS "grandTotalCommission",
+      "levelPurchasedAt",
+      "userLevel"
     FROM users.wallets 
     WHERE "userId" = $1;
   `,
-
+  
+getFirstDepositTime: `
+  SELECT "timestamp"
+  FROM users.deposits
+  WHERE "userId" = $1
+    AND status = 'success'
+  ORDER BY "timestamp" ASC
+  LIMIT 1;
+`,
   createWalletIfNotExists: `
     INSERT INTO users.wallets ("userId", deposits, earnings)
     VALUES ($1, 0, 0)
