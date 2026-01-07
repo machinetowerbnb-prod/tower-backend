@@ -104,12 +104,13 @@ export const purchaseNow = async (req, res) => {
     }
     // 6️⃣ Update wallet for level purchase
     await pool.query(
-      `UPDATE users."wallets"
-       SET "userLevel" = $1,
-           "purchaseAmount" = $2,
-           "lastActivatedAt" = $4
-       WHERE "userId" = $3`,
-      [Level, purchaseAmount, userId,null]
+      `UPDATE users.wallets
+   SET "userLevel" = $1,
+       "purchaseAmount" = $2,
+       "lastActivatedAt" = NULL,
+       "levelPurchasedAt" = $4
+   WHERE "userId" = $3`,
+      [Level, purchaseAmount, userId, Date.now()]
     );
 
     res.status(200).json({
