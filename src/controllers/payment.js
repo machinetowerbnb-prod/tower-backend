@@ -139,58 +139,70 @@ export const createPayin = async (depositData) => {
  * 3️⃣ PAYMENT STATUS API (Client polls this)
  */
 export const checkPayinStatus = async (req, res) => {
-  const client = await pool.connect();
   const track_id = req.params.track_id;
 
   try {
-    await client.query("BEGIN");
-
-    // 1️⃣ Check local DB first
-    const payinRes = await client.query(
+    // 1️⃣ Check local DB first (Stateless check)
+    // Use pool.query directly to avoid holding a client connection
+    const payinRes = await pool.query(
       `SELECT * FROM users.payments WHERE track_id=$1`,
       [track_id]
     );
-    const getUserId = await client.query(
+    const getUserId = await pool.query(
       `SELECT * FROM users.deposits WHERE track_id=$1`,
       [track_id]
     );
+
     if (getUserId.rows.length === 0) {
-      await client.query("ROLLBACK");
       return res
         .status(404)
         .json({ success: false, message: "Deposit record not found" });
     }
     const UserId = getUserId.rows[0].userId;
+
     if (payinRes.rows.length === 0) {
-      await client.query("ROLLBACK");
       return res
         .status(404)
         .json({ success: false, message: "Payin not found" });
     }
 
     const record = payinRes.rows[0];
-    const amount = Number(record.amount);
 
-    // If already completed → avoid DB hits
+    // If already completed → return immediately
     if (record.status === "paid") {
-      await client.query("ROLLBACK");
       return res.json({
         success: true,
         status: "paid",
         data: record.oxa_response,
       });
-    } 
+    }
 
-    // 2️⃣ Fetch live status from OxaPay
-    const oxRes = await axios.get(`${OXAPAY_API_BASE}/${track_id}`, {
-      headers: {
-        "Content-Type": "application/json",
-        merchant_api_key: OXAPAY_API_KEY,
-      },
-    });
+    // 2️⃣ Fetch live status from OxaPay (External Call - No DB Connection Held)
+    let oxRes;
+    try {
+      oxRes = await axios.get(`${OXAPAY_API_BASE}/${track_id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          merchant_api_key: OXAPAY_API_KEY,
+        },
+      });
+    } catch (apiErr) {
+      console.error("❌ OxaPay API Error:", apiErr.message);
+      // Return a proper error response instead of crashing or hanging
+      return res.status(502).json({
+        success: false,
+        message: "Payment provider unavailable, please try again later",
+        error: apiErr.message
+      });
+    }
 
     const oxapay = oxRes.data?.data;
-    if (!oxapay) throw new Error("Invalid OxaPay response");
+    if (!oxapay) {
+      return res.status(502).json({
+        success: false,
+        message: "Invalid response from payment provider"
+      });
+    }
 
     // 3️⃣ Resolve final status
     let finalStatus = oxapay.status;
@@ -201,75 +213,86 @@ export const checkPayinStatus = async (req, res) => {
       finalAmount = addReverseFee(oxapay.txs?.[0]?.amount);
     }
 
-    // 4️⃣ Update payments table always — but does not credit wallet
+    // 4️⃣ Update payments table (Log the status update)
+    // upsertPayin handles its own short-lived connection
     await upsertPayin(track_id, {
       status: finalStatus,
       oxa_response: oxapay,
     });
 
-    // 5️⃣ If paid → Credit wallet ONLY ONCE (duplicate-proof logic)
+    // 5️⃣ If paid → Credit wallet (Requires Transaction & Locking)
     if (finalStatus === "paid") {
-      await client.query(
-        `
-  UPDATE users.deposits
-  SET status = 'success',
-      amount = $2
-  WHERE track_id = $1
-    AND status != 'success'
-  RETURNING *;
-  `,
-        [track_id, finalAmount]
-      );
-      const result = await client.query(
-        `
-        UPDATE users.wallets
-        SET deposits = deposits + $1
-        WHERE "userId" = $2
-        RETURNING *;
-        `,
-        [finalAmount, UserId]
-      );
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
 
-      const userCheck = await client.query(
-      `SELECT "isDeposited" FROM users.userDetails WHERE "userId" = $1`,
-      [UserId]
-    );
+        const depositUpdateResult = await client.query(
+          `
+          UPDATE users.deposits
+          SET status = 'success',
+              amount = $2
+          WHERE track_id = $1
+            AND status != 'success'
+          RETURNING *;
+          `,
+          [track_id, finalAmount]
+        );
 
-      if (userCheck.rows.length && !userCheck.rows[0].isDeposited) {
-      await client.query(
-        `UPDATE users.userDetails SET "isDeposited" = true WHERE "userId" = $1`,
-        [UserId]
-      );
-    }
+        // If 0 rows updated → deposit already activated earlier
+        if (depositUpdateResult.rowCount === 0) {
+          await client.query("COMMIT");
+          return res.json({
+            success: true,
+            status: "paid",
+            message: "Deposit already activated — no duplicate credit",
+            data: oxapay,
+          });
+        }
 
-      // If 0 rows updated → deposit already activated earlier
-      if (result.rowCount === 0) {
+        // ONLY if we successfully updated the deposit status do we credit the wallet
+        await client.query(
+          `
+          UPDATE users.wallets
+          SET deposits = deposits + $1
+          WHERE "userId" = $2
+          RETURNING *;
+          `,
+          [finalAmount, UserId]
+        );
+
+        const userCheck = await client.query(
+          `SELECT "isDeposited" FROM users.userDetails WHERE "userId" = $1`,
+          [UserId]
+        );
+
+        if (userCheck.rows.length && !userCheck.rows[0].isDeposited) {
+          await client.query(
+            `UPDATE users.userDetails SET "isDeposited" = true WHERE "userId" = $1`,
+            [UserId]
+          );
+        }
+
         await client.query("COMMIT");
-        return res.json({
-          success: true,
-          status: "paid",
-          message: "Deposit already activated — no duplicate credit",
-          data: oxapay,
-        });
+      } catch (txErr) {
+        await client.query("ROLLBACK");
+        throw txErr;
+      } finally {
+        client.release();
       }
     }
-
-    await client.query("COMMIT");
 
     return res.json({
       success: true,
       status: finalStatus,
       data: oxapay,
     });
+
   } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("❌ Payin Status Error:", err.response?.data || err.message);
+    console.error("❌ Payin Status Error:", err.message);
     return res.status(500).json({
       success: false,
       statusCode: 500,
-      error: err.response?.data || err.message,
+      error: "Internal Server Error",
     });
-  } finally {
-    client.release();
   }
 };
