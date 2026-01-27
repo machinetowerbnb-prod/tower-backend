@@ -79,7 +79,7 @@ export const purchaseNow = async (req, res) => {
       Level1: { min: 60, max: 500 },
       Level2: { min: 501, max: 900 },
       Level3: { min: 901, max: 1500 },
-      Level4: { min: 1501, max: 3500 },
+      Level4: { min: 1501, max: 4000 },
     };
 
     const range = levelRanges[Level];
