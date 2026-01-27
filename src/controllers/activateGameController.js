@@ -46,7 +46,7 @@ export const activateGame = async (req, res) => {
     }
 
     // 3️⃣ Level Commission %
-    const levelRates = { free: 0, Level1: 1.6, Level2: 1.9, Level3: 2.3, Level4: 2.5 };
+    const levelRates = { free: 0, Level1: 1.6, Level2: 1.9, Level3: 2.3, Level4: 2.6 };
     const levelRate = levelRates[userLevel];
     if (levelRate === undefined) {
       await client.query("ROLLBACK");
